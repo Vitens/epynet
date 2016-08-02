@@ -2,7 +2,7 @@
 import math
 
 import epanet2 as ep
-from tools import IndexIdType
+from .tools import IndexIdType
 
 def get_epanet_error(error_code):
     """ Raise Exception and get error information if necessary """
@@ -84,7 +84,7 @@ class Node(object):
             if link.from_node == self:
                 links.append(link)
         return links
-    
+
     @property
     def inflow(self):
         """ calculates all the water flowing into the node """
@@ -163,7 +163,7 @@ class Valve(Link):
     def valve_type(self):
         type_code = check(ep.ENgetlinktype(self.index))
         return self.types[type_code]
-    def set_setting(self,setting):
+    def set_setting(self, setting):
         check(ep.ENsetlinkvalue(self.index, 5, setting))
 
 class Network(object):
