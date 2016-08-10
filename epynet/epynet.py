@@ -1,4 +1,4 @@
-""" test """
+""" EPYNET Classes """
 import math
 
 import epanet2 as ep
@@ -92,7 +92,12 @@ class Node(object):
         for link in self.upstream_links:
             inflow += link.flow
         return inflow
-
+    @property
+    def outflow(self):
+        outflow = 0
+        for link in self.downstream_links:
+            outflow += link.flow
+        return outflow
 
 class Reservoir(Node):
     """ EPANET Reservoir Class """
