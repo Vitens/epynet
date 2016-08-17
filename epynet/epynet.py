@@ -72,8 +72,9 @@ class Node(object):
         """ return a list of upstream links """
         links = []
         for link in self.links:
-            if link.to_node == self:
+            if (link.to_node == self and link.flow >= 0) or (link.from_node == self and link.flow < 0):
                 links.append(link)
+                
         return links
 
     @property
@@ -81,7 +82,7 @@ class Node(object):
         """ return a list of downstream nodes """
         links = []
         for link in self.links:
-            if link.from_node == self:
+            if (link.from_node == self and link.flow >= 0) or (link.to_node == self and link.flow < 0):
                 links.append(link)
         return links
 
@@ -90,13 +91,13 @@ class Node(object):
         """ calculates all the water flowing into the node """
         inflow = 0
         for link in self.upstream_links:
-            inflow += link.flow
+            inflow += abs(link.flow)
         return inflow
     @property
     def outflow(self):
         outflow = 0
         for link in self.downstream_links:
-            outflow += link.flow
+            outflow += abs(link.flow)
         return outflow
 
 class Reservoir(Node):
@@ -146,6 +147,21 @@ class Link(object):
     def velocity(self):
         return self.get_property(9)
 
+    # upstream and downstream nodes
+    @property
+    def upstream_node(self):
+        if self.flow >= 0:
+            return self.from_node
+        else:
+            return self.to_node
+    @property
+    def downstream_node(self):
+        if self.flow >= 0:
+            return self.to_node
+        else:
+            return self.from_node
+
+
 
 class Pipe(Link):
     """ EPANET Pipe Class """
@@ -158,6 +174,14 @@ class Pipe(Link):
     @property
     def volume(self):
         return self.length * 1/4 * math.pi * self.diameter ** 2
+
+class Pump(Link):
+    @property
+    def velocity(self):
+        return 1
+
+    def set_speed(self,speed):
+        check(ep.ENsetlinkvalue(self.index, 5, speed))
 
 class Valve(Link):
     """ EPANET Valve Class """
@@ -187,6 +211,7 @@ class Network(object):
         self.links = IndexIdType()
         self.pipes = IndexIdType()
         self.valves = IndexIdType()
+        self.pumps = IndexIdType()
 
         self.load_network()
 
@@ -217,6 +242,9 @@ class Network(object):
             if link_type <= 1:
                 link = Pipe(index)
                 self.pipes[index] = link
+            elif link_type == 2:
+                link = Pump(index)
+                self.pumps[index] = link
             elif link_type >= 3:
                 link = Valve(index)
                 self.valves[index] = link
