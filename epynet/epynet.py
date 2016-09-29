@@ -14,7 +14,8 @@ def get_epanet_error(error_code):
 def check(result_list):
     """ Check the returned response from an EPANET2 function
     for errors, and remove the error status from the response."""
-    if not isinstance(result_list, list):
+
+    if type(result_list) is not list:
         result = [result_list]
     else:
         result = result_list
@@ -37,6 +38,9 @@ class Node(object):
         self.uid = check(ep.ENgetnodeid(index))
         self.coordinates = coordinates[self.uid]
         self._lazy_properties = {}
+
+    def __str__(self):
+        return self.uid
 
     def get_property(self, code):
         return check(ep.ENgetnodevalue(self.index, code))
@@ -93,6 +97,7 @@ class Node(object):
         for link in self.upstream_links:
             inflow += abs(link.flow)
         return inflow
+
     @property
     def outflow(self):
         outflow = 0
@@ -110,7 +115,7 @@ class Junction(Node):
 
 class Tank(Node):
     """ EPANET Reservoir Class """
-    node_type = "Junction"
+    node_type = "Tank"
 
 class Link(object):
     """ EPANET Link Class """
@@ -123,6 +128,8 @@ class Link(object):
 
         self.from_node = None
         self.to_node = None
+    def __str__(self):
+        return self.uid
 
     def get_property(self, code):
         return check(ep.ENgetlinkvalue(self.index, code))
@@ -161,10 +168,9 @@ class Link(object):
         else:
             return self.from_node
 
-
-
 class Pipe(Link):
     """ EPANET Pipe Class """
+    link_type = 'pipe'
     @property
     def length(self):
         return self.lazy_get_property(1)
@@ -176,6 +182,9 @@ class Pipe(Link):
         return self.length * 1/4 * math.pi * self.diameter ** 2
 
 class Pump(Link):
+    """ EPANET Pump Class """
+    link_type = 'pump'
+
     @property
     def velocity(self):
         return 1
@@ -185,8 +194,13 @@ class Pump(Link):
 
 class Valve(Link):
     """ EPANET Valve Class """
+    link_type = 'valve'
 
     types = {3:"PRV", 4:"PSV", 5:"PBV", 6:"FCV", 7:"TCV", 8:"GPV"}
+
+    @property
+    def setting(self):
+        return check(ep.ENgetlinkvalue(self.index, 5))
 
     @property
     def valve_type(self):
@@ -277,10 +291,12 @@ class Network(object):
 
         return coordinates
 
-    @staticmethod
-    def solve():
+    #@staticmethod
+    def solve(self, simtime=0):
         """ Solve Hydraulic Network """
+        check(ep.ENsettimeparam(4,simtime))
         check(ep.ENopenH())
         check(ep.ENinitH(0))
         check(ep.ENrunH())
         check(ep.ENcloseH())
+        #check(ep.ENcloseH())
