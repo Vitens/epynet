@@ -1,1 +1,3 @@
-from epynet import Network, Pipe, Node, Junction, Link, Valve, Reservoir
+from network import Network
+from link import Link, Pipe, Pump, Valve
+from node import Node, Junction, Reservoir, Tank

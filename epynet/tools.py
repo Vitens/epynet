@@ -47,3 +47,27 @@ class IndexIdType(TransformedDict):
                     return i
             raise KeyError("Key %s not found" % key)
         return key
+
+def get_epanet_error(error_code):
+    """ Raise Exception and get error information if necessary """
+    if error_code:
+        error_description = ep.ENgeterror(error_code, 500)[1]
+        error_string = str(error_code) + " " + error_description
+        raise Exception(error_string)
+
+def check(result_list):
+    """ Check the returned response from an EPANET2 function
+    for errors, and remove the error status from the response."""
+
+    if type(result_list) is not list:
+        result = [result_list]
+    else:
+        result = result_list
+
+    # Check for epanet error
+    get_epanet_error(result[0])
+
+    if len(result) == 2:
+        return result[1]
+    else:
+        return result[1:]
