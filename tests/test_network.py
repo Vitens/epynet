@@ -90,7 +90,9 @@ class TestEpynet(object):
         # uid
         assert_equal(node.uid,'4')
         # coordinates
-        assert_almost_equal(node.coordinates,(2103.02,5747.69),2)
+        coordinates = node.coordinates
+        assert_almost_equal(coordinates[0],2103.02,2)
+        assert_almost_equal(coordinates[1],5747.69,2)
         # links
         assert_equal(len(node.links),3)
         # up and downstream links
