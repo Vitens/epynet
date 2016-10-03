@@ -13,6 +13,7 @@ EPYNET is an object oriented wrapper around the EPANET 2.1 community edition hyd
 - [ ] [TODO] Manipulation of pipe, junction, reservoir and tank settings
 - [ ] [TODO] Chemical calculations
 - [ ] [TODO] Pattern creation and manipulation
+- [ ] [TODO] Support for time series
 
 ## Example Usage
 ```python
