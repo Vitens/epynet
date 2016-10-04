@@ -1,5 +1,5 @@
 from epynet import Network
-from nose.tools import assert_equal
+from nose.tools import assert_equal, assert_almost_equal
 
 class TestEpynet(object):
     @classmethod
@@ -37,18 +37,18 @@ class TestEpynet(object):
         # check type
         assert_equal(pipe.link_type,'pipe')
 
-        assert_equal(pipe.length,100)
-        assert_equal(pipe.diameter,150)
-        assert_equal(pipe.roughness,0.1)
-        assert_equal(round(pipe.minorloss,2),0.1)
+        assert_almost_equal(pipe.length,100,2)
+        assert_almost_equal(pipe.diameter,150,2)
+        assert_almost_equal(pipe.roughness,0.1,2)
+        assert_almost_equal(pipe.minorloss,0.1,2)
         # flow
-        assert_equal(round(pipe.flow,2),87.92)
+        assert_almost_equal(pipe.flow,87.92,2)
         # direction
-        assert_equal(round(pipe.velocity,2),1.38)
+        assert_almost_equal(pipe.velocity,1.38,2)
         # status
         assert_equal(pipe.status,1)
         # headloss
-        assert_equal(round(pipe.headloss,2),1.29)
+        assert_almost_equal(pipe.headloss,1.29,2)
         # upstream/downstream node
         assert_equal(pipe.upstream_node.uid,'4')
         assert_equal(pipe.downstream_node.uid,'9')
@@ -59,13 +59,13 @@ class TestEpynet(object):
         assert_equal(pump.link_type,'pump')
 
         assert_equal(pump.speed,1.0)
-        assert_equal(round(pump.flow,2),109.67)
+        assert_almost_equal(pump.flow,109.67,2)
         # change speed
         pump.set_speed(1.5)
         assert_equal(pump.speed,1.5)
         # resolve network
         self.network.solve()
-        assert_equal(round(pump.flow,2),164.5)
+        assert_almost_equal(pump.flow,164.5,2)
         # revert speed
         pump.set_speed(1.0)
         self.network.solve()
@@ -78,19 +78,21 @@ class TestEpynet(object):
         assert_equal(valve.valve_type,'PRV')
         # valve settings
         assert_equal(valve.setting,5)
-        assert_equal(round(valve.downstream_node.pressure),5)
+        assert_almost_equal(valve.downstream_node.pressure,5,2)
         # change setting
         valve.set_setting(10)
         assert_equal(valve.setting,10)
         self.network.solve()
-        assert_equal(round(valve.downstream_node.pressure),10)
+        assert_almost_equal(valve.downstream_node.pressure,10,2)
 
     def test6_node(self):
         node = self.network.nodes['4']
         # uid
         assert_equal(node.uid,'4')
         # coordinates
-        assert_equal(node.coordinates,(2103.02,5747.69))
+        coordinates = node.coordinates
+        assert_almost_equal(coordinates[0],2103.02,2)
+        assert_almost_equal(coordinates[1],5747.69,2)
         # links
         assert_equal(len(node.links),3)
         # up and downstream links

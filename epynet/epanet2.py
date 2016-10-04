@@ -6,12 +6,12 @@ import ctypes
 import platform
 import datetime
 import os
-import pudb
 
 _plat= platform.system()
 if _plat=='Darwin':
     dll_path = os.path.join(os.path.dirname(__file__), "lib/libepanet.dylib")
     _lib = ctypes.CDLL(dll_path)
+    ctypes.c_float = ctypes.c_double
 elif _plat=='Linux':
     dll_path = os.path.join(os.path.dirname(__file__), "lib/libepanet.so")
     _lib = ctypes.CDLL(dll_path)
@@ -115,8 +115,8 @@ def ENgetcoord(index):
 
     Arguments:
     index: node index"""
-    x= ctypes.c_double()
-    y= ctypes.c_double()
+    x= ctypes.c_float()
+    y= ctypes.c_float()
     ierr= _lib.ENgetcoord(index, ctypes.byref(x), ctypes.byref(y))
     if ierr!=0: raise ENtoolkitError(ierr)
     return (x.value,y.value)
@@ -156,7 +156,7 @@ def ENgetnodevalue(index, paramcode):
                   EN_MAXLEVEL    Maximum water level
                   EN_MIXFRACTION Fraction of total volume occupied by the inlet/outlet zone in a 2-compartment tank
                   EN_TANK_KBULK  Bulk reaction rate coefficient"""
-    j= ctypes.c_double()
+    j= ctypes.c_float()
     ierr= _lib.ENgetnodevalue(index, paramcode, ctypes.byref(j))
     if ierr!=0: raise ENtoolkitError(ierr)
     return j.value
@@ -229,7 +229,7 @@ def ENgetlinkvalue(index, paramcode):
                  EN_ENERGY       * Energy expended in kwatts
                    * computed values"""
     #pudb.set_trace()
-    j= ctypes.c_double()
+    j= ctypes.c_float()
     ierr= _lib.ENgetlinkvalue(index, paramcode, ctypes.byref(j))
     if ierr!=0: raise ENtoolkitError(ierr)
     return j.value
@@ -273,7 +273,7 @@ def ENgetpatternvalue( index, period):
     Arguments:
     index:  time pattern index
     period: period within time pattern"""
-    j= ctypes.c_double()
+    j= ctypes.c_float()
     ierr= _lib.ENgetpatternvalue(index, period, ctypes.byref(j))
     if ierr!=0: raise ENtoolkitError(ierr)
     return j.value
@@ -357,8 +357,8 @@ def ENgetcontrol(cindex, ctype, lindex, setting, nindex, level ):
                 or of time of control action (in seconds) for time-based controls"""
     #int ENgetcontrol(int cindex, int* ctype, int* lindex, float* setting, int* nindex, float* level )
     ierr= _lib.ENgetcontrol(ctypes.c_int(cindex), ctypes.c_int(ctype), 
-                            ctypes.c_int(lindex), ctypes.c_double(setting), 
-                            ctypes.c_int(nindex), ctypes.c_double(level) )
+                            ctypes.c_int(lindex), ctypes.c_float(setting), 
+                            ctypes.c_int(nindex), ctypes.c_float(level) )
     if ierr!=0: raise ENtoolkitError(ierr)
 
 
@@ -401,8 +401,8 @@ def ENsetcontrol(cindex, ctype, lindex, setting, nindex, level ):
                 or of time of control action (in seconds) for time-based controls"""
     #int ENsetcontrol(int cindex, int* ctype, int* lindex, float* setting, int* nindex, float* level )
     ierr= _lib.ENsetcontrol(ctypes.c_int(cindex), ctypes.c_int(ctype),
-                            ctypes.c_int(lindex), ctypes.c_double(setting), 
-                            ctypes.c_int(nindex), ctypes.c_double(level) )
+                            ctypes.c_int(lindex), ctypes.c_float(setting), 
+                            ctypes.c_int(nindex), ctypes.c_float(level) )
     if ierr!=0: raise ENtoolkitError(ierr)
 
 
@@ -430,7 +430,7 @@ def ENsetnodevalue(index, paramcode, value):
                   EN_MIXFRACTION   Fraction of total volume occupied by the inlet/outlet
                   EN_TANK_KBULK    Bulk reaction rate coefficient
     value:parameter value"""
-    ierr= _lib.ENsetnodevalue(ctypes.c_int(index), ctypes.c_int(paramcode), ctypes.c_double(value))
+    ierr= _lib.ENsetnodevalue(ctypes.c_int(index), ctypes.c_int(paramcode), ctypes.c_float(value))
     if ierr!=0: raise ENtoolkitError(ierr)
 
 
@@ -456,7 +456,7 @@ def ENsetlinkvalue(index, paramcode, value):
     value:parameter value"""
     ierr= _lib.ENsetlinkvalue(ctypes.c_int(index), 
                               ctypes.c_int(paramcode), 
-			      ctypes.c_double(value))
+			      ctypes.c_float(value))
     if ierr!=0: raise ENtoolkitError(ierr)
 
 
@@ -475,7 +475,7 @@ def ENsetpattern(index, factors):
     factors:  multiplier factors list for the entire pattern"""
     # int ENsetpattern( int index, float* factors, int nfactors )
     nfactors= len(factors)
-    cfactors_type= ctypes.c_double* nfactors
+    cfactors_type= ctypes.c_float* nfactors
     cfactors= cfactors_type()
     for i in range(nfactors):
        cfactors[i]= float(factors[i] )
@@ -492,7 +492,7 @@ def ENsetpatternvalue( index, period, value):
     #int ENsetpatternvalue( int index, int period, float value )
     ierr= _lib.ENsetpatternvalue( ctypes.c_int(index), 
                                   ctypes.c_int(period), 
-				  ctypes.c_double(value) )
+				  ctypes.c_float(value) )
     if ierr!=0: raise ENtoolkitError(ierr)
  
  
@@ -545,7 +545,7 @@ def ENsetoption( optioncode, value):
                               EN_EMITEXPON 
                               EN_DEMANDMULT
       value:  option value"""
-    ierr= _lib.ENsetoption(ctypes.c_int(paramcode), ctypes.c_double(value))
+    ierr= _lib.ENsetoption(ctypes.c_int(paramcode), ctypes.c_float(value))
     if ierr!=0: raise ENtoolkitError(ierr)
 
 
@@ -754,8 +754,8 @@ if hasattr(_lib,"ENgetcurve"):
    def ENgetcurve(curveIndex):
        curveid = ctypes.create_string_buffer(_max_label_len)
        nValues = ctypes.c_int()
-       xValues= ctypes.POINTER(ctypes.c_double)()
-       yValues= ctypes.POINTER(ctypes.c_double)()
+       xValues= ctypes.POINTER(ctypes.c_float)()
+       yValues= ctypes.POINTER(ctypes.c_float)()
        ierr= _lib.ENgetcurve(curveIndex,
                              ctypes.byref(curveid),
 	     	             ctypes.byref(nValues),
@@ -773,8 +773,8 @@ if hasattr(_lib,"ENgetcurve"):
    def ENgetcurveid(curveIndex):
        curveid = ctypes.create_string_buffer(_max_label_len)
        nValues = ctypes.c_int()
-       xValues= ctypes.POINTER(ctypes.c_double)()
-       yValues= ctypes.POINTER(ctypes.c_double)()
+       xValues= ctypes.POINTER(ctypes.c_float)()
+       yValues= ctypes.POINTER(ctypes.c_float)()
        ierr= _lib.ENgetcurve(curveIndex,
                              ctypes.byref(curveid),
 	     	             ctypes.byref(nValues),
