@@ -2,6 +2,7 @@ language: python
 python:
   - "2.7"
 install: 
+  - sudo pip install enum34
   - sudo pip install conda
   - sudo conda init
   - sudo conda update conda --yes
