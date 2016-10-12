@@ -10,7 +10,7 @@ EPYNET is an object oriented wrapper around the EPANET 2.1 community edition hyd
 - [x] Object oriented access to Nodes, Junctions, Reservoirs, Tanks, Links, Pipes, Valves and Pumps
 - [x] Convienent access to simulation results such as flow, velocity and pressure through class properties
 - [x] Manipulation of valve and pump settings
-- [ ] [TODO] Manipulation of pipe, junction, reservoir and tank settings
+- [x] Manipulation of pipe, junction, reservoir and tank settings
 - [ ] [TODO] Chemical calculations
 - [ ] [TODO] Pattern creation and manipulation
 - [ ] [TODO] Support for time series
