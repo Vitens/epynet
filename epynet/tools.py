@@ -1,4 +1,5 @@
 import collections
+import pandas as pd
 
 class TransformedDict(collections.MutableMapping):
     """A dictionary that applies an arbitrary key-altering
@@ -29,9 +30,23 @@ class TransformedDict(collections.MutableMapping):
     @staticmethod
     def __keytransform__(key):
         return key
+
 class IndexIdType(TransformedDict):
     """ Index Id List/Dict hybrid that allows setting both
         str (id) and integer (index) values """
+
+    def __getitem__(self, key):
+
+        # support for index slicing through pandas
+        if isinstance(key,pd.Series):
+            indices = key[key==True].index
+            return_dict = IndexIdType()
+            for index in indices:
+                obj = self.store[self.__keytransform__(index)]
+                return_dict[obj.index] = obj
+            return return_dict
+
+        return self.store[self.__keytransform__(key)]
 
     def __setitem__(self, key, value):
         key = self.__keytransform__(key)
@@ -48,26 +63,27 @@ class IndexIdType(TransformedDict):
             raise KeyError("Key %s not found" % key)
         return key
 
-def get_epanet_error(error_code):
-    """ Raise Exception and get error information if necessary """
-    if error_code:
-        error_description = ep.ENgeterror(error_code, 500)[1]
-        error_string = str(error_code) + " " + error_description
-        raise Exception(error_string)
+    # magic methods to transform collection attributes to Pandas Series or, if we return classes, another list
+    def __getattr__(self,name):
 
-def check(result_list):
-    """ Check the returned response from an EPANET2 function
-    for errors, and remove the error status from the response."""
+        values = {}
 
-    if type(result_list) is not list:
-        result = [result_list]
-    else:
-        result = result_list
+        for key, item in self.store.iteritems():
+            values[item.uid] = getattr(item,name)
 
-    # Check for epanet error
-    get_epanet_error(result[0])
+        return pd.Series(values)
 
-    if len(result) == 2:
-        return result[1]
-    else:
-        return result[1:]
+    def __setattr__(self, name, value):
+        if name == "store":
+            super(IndexIdType,self).__setattr__("store",value)
+            return
+
+        if isinstance(value, pd.Series):
+            for key, item in self.store.iteritems():
+                setattr(item,name,value[item.uid])
+            return
+
+        for key, item in self.store.iteritems():
+
+            setattr(item,name,value)
+

@@ -15,6 +15,10 @@ class Node(object):
     def __str__(self):
         return self.uid
 
+    def set_property(self, code, value):
+        self._lazy_properties[code] = value
+        ep.ENsetnodevalue(self.index, code, value)
+
     def get_property(self, code):
         return ep.ENgetnodevalue(self.index, code)
 
@@ -34,6 +38,10 @@ class Node(object):
     @property
     def elevation(self):
         return self.lazy_get_property(0)
+
+    @elevation.setter
+    def elevation(self, value):
+        self.set_property(0,value)
     # computed values
     @property
     def head(self):
@@ -89,9 +97,14 @@ class Junction(Node):
     @property
     def demand(self):
         return self.get_property(9)
+
     @property
     def basedemand(self):
         return self.lazy_get_property(1)
+
+    @basedemand.setter
+    def basedemand(self,value):
+        self.set_property(1,value)
 
 
 class Tank(Node):

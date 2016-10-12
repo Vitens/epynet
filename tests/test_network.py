@@ -61,13 +61,13 @@ class TestEpynet(object):
         assert_equal(pump.speed,1.0)
         assert_almost_equal(pump.flow,109.67,2)
         # change speed
-        pump.set_speed(1.5)
+        pump.speed = 1.5
         assert_equal(pump.speed,1.5)
         # resolve network
         self.network.solve()
         assert_almost_equal(pump.flow,164.5,2)
         # revert speed
-        pump.set_speed(1.0)
+        pump.speed = 1.0
         self.network.solve()
         
     def test5_valve(self):
@@ -80,7 +80,7 @@ class TestEpynet(object):
         assert_equal(valve.setting,5)
         assert_almost_equal(valve.downstream_node.pressure,5,2)
         # change setting
-        valve.set_setting(10)
+        valve.setting = 10
         assert_equal(valve.setting,10)
         self.network.solve()
         assert_almost_equal(valve.downstream_node.pressure,10,2)
@@ -129,6 +129,33 @@ class TestEpynet(object):
         assert_equal(round(junction.demand,2),2)
         self.network.solve(7200)
         assert_equal(round(junction.demand,2),3)
+
+    def test9_collections(self):
+        # collection attributes as pandas Series
+        assert_almost_equal(self.network.pipes.flow.mean(),46.77,2)
+        assert_almost_equal(self.network.pipes.diameter.max(),150,2)
+        assert_almost_equal(self.network.pipes.velocity.min(),0.105,2)
+
+        assert_equal(self.network.valves.setting.mean(),10)
+
+        assert_almost_equal(self.network.junctions.demand.mean(),2.33,2)
+
+        # filtering and slicing collections
+        assert_equal(len(self.network.pipes[self.network.pipes.velocity > 3]),3)
+        assert_equal(len(self.network.nodes[self.network.nodes.pressure < 20]),5)
+
+        #increase the size of all pipes
+        self.network.pipes.diameter += 500
+        assert_almost_equal(self.network.pipes.diameter.mean(),605,2)
+
+        self.network.pipes.diameter -= 500
+
+        # resize pipes, and recalculate velocity
+        self.network.pipes[self.network.pipes.velocity > 3].diameter += 100
+        self.network.solve()
+
+        assert_equal(len(self.network.pipes[self.network.pipes.velocity > 3]),0)
+
 
 
 
