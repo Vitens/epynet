@@ -26,13 +26,14 @@ network.solve()
 print network.pipes['4'].flow
 print network.nodes['1'].demand
 # valve manipulation
-network.valves['12'].set_setting(10)
+network.valves['12'].setting = 10
 # convinience properties
 print network.pipes['5'].downstream_node.pressure
 print network.nodes['1'].upstream_links[0].velocity
-# iterating over network items
-for reservoir in network.reservoirs:
-  print reservoir.uid, reservoir.outflow
+# pandas integration
+print network.pipes.flow
+print network.pipes.length[network.pipes.velocity > 1]
+print network.nodes.demand[network.nodes.pressure < 10].max()
 ```
 
 ## Installation
