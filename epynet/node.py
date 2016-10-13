@@ -2,7 +2,6 @@
 import epanet2 as ep
 from objectcollection import ObjectCollection
 from baseobject import BaseObject
-import pudb
 
 class Node(BaseObject):
     """ Base EPANET Node class """
