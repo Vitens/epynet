@@ -4,60 +4,26 @@ import pudb
 import pandas as pd
 
 import epanet2 as ep
-from tools import IndexIdType
 from baseobject import BaseObject
 
-class Link(object):
+class Link(BaseObject):
     """ EPANET Link Class """
 
-    static_properties = {}
     properties = {'flow':ep.EN_FLOW}
 
     def __init__(self, index):
-        self.index = index
-        # lazy variables
-        self.uid = ep.ENgetlinkid(index)
-        self._static_values = {}
-
-        self.results = {}
-        self.times = []
-
+        super(Link, self).__init__(index)
         self.from_node = None
         self.to_node = None
 
-    def __getattr__(self, name):
-        if name in self.static_properties.keys():
-            return self.get_static_property(self.static_properties[name])
-        elif name in self.properties.keys():
-            if self.results == {}:
-                return self.get_property(self.properties[name])
-            else:
-                return pd.Series(self.results[name], index=self.times)
-        else:
-            raise AttributeError('Nonexistant Attribute',name)
+    def get_uid(self, index):
+        return ep.ENgetlinkid(index)
 
-    def __setattr__(self, name, value):
-        if name in self.properties.keys():
-            raise AttributeError("Illegal Assignment to Computed Value")
-        if name in self.static_properties.keys():
-            self.set_static_property(self.static_properties[name],value)
-        else:
-            super(Link, self).__setattr__(name, value)
+    def set_object_value(self, index, code, value):
+        return ep.ENsetlinkvalue(index, code, value)
 
-    def __str__(self):
-        return self.uid
-
-    def set_static_property(self, code, value):
-        self._static_values[code] = value
-        ep.ENsetlinkvalue(self.index, code, value) 
-
-    def get_property(self, code):
-        return ep.ENgetlinkvalue(self.index, code)
-
-    def get_static_property(self, code):
-        if code not in self._static_values.keys():
-            self._static_values[code] = self.get_property(code)
-        return self._static_values[code]
+    def get_object_value(self, index, code):
+        return ep.ENgetlinkvalue(index, code)
 
     # upstream and downstream nodes
     @property

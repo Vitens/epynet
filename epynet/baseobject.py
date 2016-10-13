@@ -1,3 +1,5 @@
+import pandas as pd
+
 class BaseObject(object):
 
     static_properties = {}
@@ -17,7 +19,13 @@ class BaseObject(object):
         # list of times
         self.times = []
 
-    def get_id(self, index):
+    def get_uid(self, index):
+        raise NotImplementedError
+
+    def set_object_value(self, index, code, value):
+        raise NotImplementedError
+
+    def get_object_value(self, index, code):
         raise NotImplementedError
 
     def reset(self):
@@ -26,8 +34,8 @@ class BaseObject(object):
         self.times = []
 
     def __str__(self):
-        return self.uid
-    
+        return "<epynet."+self.__class__.__name__ + " with id '" + self.uid + "'>"
+
     def __getattr__(self, name):
         if name in self.static_properties.keys():
             return self.get_static_property(self.static_properties[name])
@@ -45,17 +53,14 @@ class BaseObject(object):
         if name in self.static_properties.keys():
             self.set_static_property(self.static_properties[name],value)
         else:
-            super(Link, self).__setattr__(name, value)
-
-    def __str__(self):
-        return self.uid
+            super(BaseObject, self).__setattr__(name, value)
 
     def set_static_property(self, code, value):
         self._static_values[code] = value
-        ep.ENsetlinkvalue(self.index, code, value) 
+        self.set_object_value(self.index, code, value)
 
     def get_property(self, code):
-        return ep.ENgetlinkvalue(self.index, code)
+        return self.get_object_value(self.index, code)
 
     def get_static_property(self, code):
         if code not in self._static_values.keys():

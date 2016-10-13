@@ -155,14 +155,3 @@ class TestEpynet(object):
         self.network.solve()
 
         assert_equal(len(self.network.pipes[self.network.pipes.velocity > 3]),0)
-
-
-
-
-
-
-
-
-
-
-
