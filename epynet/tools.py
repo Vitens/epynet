@@ -71,6 +71,9 @@ class IndexIdType(TransformedDict):
         for key, item in self.store.iteritems():
             values[item.uid] = getattr(item,name)
 
+        if isinstance(values[item.uid], pd.Series):
+            return pd.concat(values,axis=1)
+
         return pd.Series(values)
 
     def __setattr__(self, name, value):

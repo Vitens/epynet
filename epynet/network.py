@@ -68,9 +68,39 @@ class Network(object):
             link.to_node.links.append(link)
 
     def solve(self, simtime=0):
-        """ Solve Hydraulic Network """
+        """ Solve Hydraulic Network for Single Timestep"""
         ep.ENsettimeparam(4,simtime)
         ep.ENopenH()
         ep.ENinitH(0)
         ep.ENrunH()
         ep.ENcloseH()
+
+    def run(self):
+        self.time = []
+        # open network
+        ep.ENopenH()
+        ep.ENinitH(0)
+
+        simtime = 0
+        timestep = 1
+        while timestep > 0:
+            ep.ENrunH()
+            timestep = ep.ENnextH()
+            self.time.append(simtime)
+            self.load_attributes(simtime)
+            simtime += timestep
+
+    def load_attributes(self, simtime):
+        for node in self.nodes:
+            for property_name in node.properties.keys():
+                if property_name not in node.results.keys():
+                    node.results[property_name] = []
+                node.results[property_name].append(node.get_property(node.properties[property_name]))
+            node.times.append(simtime)
+
+        for link in self.links:
+            for property_name in link.properties.keys():
+                if property_name not in link.results.keys():
+                    link.results[property_name] = []
+                link.results[property_name].append(link.get_property(link.properties[property_name]))
+            link.times.append(simtime)

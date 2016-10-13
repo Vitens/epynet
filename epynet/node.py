@@ -4,51 +4,60 @@ from tools import IndexIdType
 
 class Node(object):
     """ Base EPANET Node class """
+
+    static_properties = {'elevation': ep.EN_ELEVATION}
+    properties = {'head': ep.EN_HEAD, 'pressure': ep.EN_PRESSURE}
+
     def __init__(self, index):
         self.index = index
 
         self.links = []
-        self.uid = ep.ENgetnodeid(index)
+        self.results = {}
+        self.times = []
 
-        self._lazy_properties = {}
+        self.uid = ep.ENgetnodeid(index)
+        self._static_values = {}
 
     def __str__(self):
         return self.uid
 
-    def set_property(self, code, value):
-        self._lazy_properties[code] = value
-        ep.ENsetnodevalue(self.index, code, value)
+    def __getattr__(self, name):
+        if name in self.static_properties.keys():
+            return self.get_static_property(self.static_properties[name])
+        elif name in self.properties.keys():
+            return self.get_property(self.properties[name])
+        else:
+            raise AttributeError('Nonexistant Attribute',name)
+
+    def __setattr__(self, name, value):
+        if name in self.properties.keys():
+            raise AttributeError("Illegal Assignment to Computed Value")
+        if name in self.static_properties.keys():
+            self.set_static_property(self.static_properties[name],value)
+        else:
+            super(Node, self).__setattr__(name, value)
+
+    def __str__(self):
+        return self.uid
+
+    def set_static_property(self, code, value):
+        self._static_values[code] = value
+        ep.ENsetnodevalue(self.index, code, value) 
 
     def get_property(self, code):
         return ep.ENgetnodevalue(self.index, code)
 
-    def lazy_get_property(self, code):
-        if code not in self._lazy_properties.keys():
-            self._lazy_properties[code] = self.get_property(code)
-        return self._lazy_properties[code]
+    def get_static_property(self, code):
+        if code not in self._static_values.keys():
+            self._static_values[code] = self.get_property(code)
+        return self._static_values[code]
 
     
     @property
     def coordinates(self):
-        if "coords" not in self._lazy_properties.keys():
-            self._lazy_properties["coords"] = ep.ENgetcoord(self.index)
-        return self._lazy_properties["coords"]
-
-    # lazy properties
-    @property
-    def elevation(self):
-        return self.lazy_get_property(0)
-
-    @elevation.setter
-    def elevation(self, value):
-        self.set_property(0,value)
-    # computed values
-    @property
-    def head(self):
-        return self.get_property(10)
-    @property
-    def pressure(self):
-        return self.get_property(11)
+        if "coords" not in self._static_values.keys():
+            self._static_values["coords"] = ep.ENgetcoord(self.index)
+        return self._static_values["coords"]
 
     # extra functionality
     @property
@@ -91,47 +100,19 @@ class Reservoir(Node):
     node_type = "Reservoir"
 
 class Junction(Node):
-    """ EPANET Reservoir Class """
+    """ EPANET Junction Class """
+
+    static_properties = {'elevation': ep.EN_ELEVATION, 'basedemand': ep.EN_BASEDEMAND}
+    properties = {'head': ep.EN_HEAD, 'pressure': ep.EN_PRESSURE, 'demand': ep.EN_DEMAND}
     node_type = "Junction"
-
-    @property
-    def demand(self):
-        return self.get_property(9)
-
-    @property
-    def basedemand(self):
-        return self.lazy_get_property(1)
-
-    @basedemand.setter
-    def basedemand(self,value):
-        self.set_property(1,value)
 
 
 class Tank(Node):
-    """ EPANET Reservoir Class """
+    """ EPANET Tank Class """
     node_type = "Tank"
 
-    @property
-    def initvolume(self):
-        return self.lazy_get_property(14)
-    @property
-    def diameter(self):
-        return self.lazy_get_property(17)
-    @property
-    def minvolume(self):
-        return self.lazy_get_property(18)
-    @property
-    def minlevel(self):
-        return self.lazy_get_property(20)
-    @property
-    def maxlevel(self):
-        return self.lazy_get_property(21)
-    @property
-    def volume(self):
-        return self.get_property(24)
-    @property
-    def maxvolume(self):
-        return self.lazy_get_property(25)
-
-
-
+    static_properties = {'elevation': ep.EN_ELEVATION, 'basedemand': ep.EN_BASEDEMAND,
+                         'initvolume': ep.EN_INITVOLUME, 'diameter': ep.EN_TANKDIAM,
+                         'minvolume': ep.EN_MINVOLUME, 'minlevel': ep.EN_MINLEVEL,
+                         'maxlevel': ep.EN_MAXLEVEL, 'maxvolume': 25}
+    properties = {'head': ep.EN_HEAD, 'pressure': ep.EN_PRESSURE, 'demand': ep.EN_DEMAND, 'volume': 24, 'level': ep.EN_TANKLEVEL}
