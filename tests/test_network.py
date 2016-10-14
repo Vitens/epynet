@@ -1,5 +1,6 @@
 from epynet import Network
 from nose.tools import assert_equal, assert_almost_equal
+import pandas as pd
 
 class TestEpynet(object):
     @classmethod
@@ -7,22 +8,22 @@ class TestEpynet(object):
         self.network = Network('tests/testnetwork.inp')
         self.network.solve()
 
-    def test1_network(self):
-        # test node count
+    def test01_network(self):
+        # test0 node count
         assert_equal(len(self.network.nodes),11)
-        # test link count
+        # test0 link count
         assert_equal(len(self.network.links),12)
-        # test reservoir count
+        # test0 reservoir count
         assert_equal(len(self.network.reservoirs),1)
-        # test valve count
+        # test0 valve count
         assert_equal(len(self.network.valves),1)
-        # test pump count
+        # test0 pump count
         assert_equal(len(self.network.pumps),1)
-        # test tank count
+        # test0 tank count
         assert_equal(len(self.network.tanks),1)
 
-    def test2_link(self):
-        # test the properties of a single link
+    def test02_link(self):
+        # test0 the properties of a single link
         link = self.network.links['11']
         # pipe index and uid
         assert_equal(link.index,9)
@@ -31,8 +32,8 @@ class TestEpynet(object):
         assert_equal(link.from_node.uid,'4')
         assert_equal(link.to_node.uid,'9')
 
-    def test3_pipe(self):
-        # test the properties of a single pipe
+    def test03_pipe(self):
+        # test0 the properties of a single pipe
         pipe = self.network.links['11']
         # check type
         assert_equal(pipe.link_type,'pipe')
@@ -53,7 +54,7 @@ class TestEpynet(object):
         assert_equal(pipe.upstream_node.uid,'4')
         assert_equal(pipe.downstream_node.uid,'9')
 
-    def test4_pump(self):
+    def test04_pump(self):
         pump = self.network.pumps['2']
         # check type
         assert_equal(pump.link_type,'pump')
@@ -70,7 +71,7 @@ class TestEpynet(object):
         pump.speed = 1.0
         self.network.solve()
         
-    def test5_valve(self):
+    def test05_valve(self):
         valve = self.network.valves['9']
         # check type
         assert_equal(valve.link_type,'valve')
@@ -85,7 +86,7 @@ class TestEpynet(object):
         self.network.solve()
         assert_almost_equal(valve.downstream_node.pressure,10,2)
 
-    def test6_node(self):
+    def test06_node(self):
         node = self.network.nodes['4']
         # uid
         assert_equal(node.uid,'4')
@@ -107,13 +108,13 @@ class TestEpynet(object):
         # head
         assert_equal(round(node.head,2),25.13)
 
-    def test7_junction(self):
+    def test07_junction(self):
         junction = self.network.junctions['4']
 
         assert_equal(round(junction.basedemand,2),1)
         assert_equal(round(junction.demand,2),1)
 
-    def test8_tank(self):
+    def test08_tank(self):
         tank = self.network.tanks['11']
         assert_equal(tank.diameter,50)
         assert_equal(round(tank.initvolume,2),19634.95)
@@ -123,14 +124,14 @@ class TestEpynet(object):
         assert_equal(round(tank.volume,2),19634.95)
         assert_equal(round(tank.maxvolume),2*round(tank.volume))
 
-    def test8_time(self):
+    def test09_time(self):
         junction = self.network.junctions['4']
         self.network.solve(3600)
         assert_equal(round(junction.demand,2),2)
         self.network.solve(7200)
         assert_equal(round(junction.demand,2),3)
 
-    def test9_collections(self):
+    def test10_collections(self):
         # collection attributes as pandas Series
         assert_almost_equal(self.network.pipes.flow.mean(),46.77,2)
         assert_almost_equal(self.network.pipes.diameter.max(),150,2)
@@ -155,3 +156,24 @@ class TestEpynet(object):
         self.network.solve()
 
         assert_equal(len(self.network.pipes[self.network.pipes.velocity > 3]),0)
+
+    def test11_timeseries(self):
+        # run network
+        self.network.run()
+        # check return types
+        # should return Series
+        assert(isinstance(self.network.pipes['1'].velocity, pd.Series))
+        # should return Dataframe
+        assert(isinstance(self.network.pipes.velocity, pd.DataFrame))
+
+        # timeseries operations
+        # pipe 1 max velocity
+        assert_almost_equal(self.network.pipes['1'].velocity.mean(),1.66,2)
+        # all day mean velocity
+        assert_almost_equal(self.network.pipes.velocity.mean().mean(),1.14,2)
+
+        # test revert to steady state calculation
+        self.network.solve()
+        assert(isinstance(self.network.pipes['1'].velocity, float))
+        assert(isinstance(self.network.pipes.velocity, pd.Series))
+
