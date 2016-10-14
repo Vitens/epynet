@@ -55,17 +55,18 @@ class Node(BaseObject):
 
     @property
     def inflow(self):
-        if len(self.upstream_links) == 0:
-            return 0
-        """ calculates all the water flowing into the node """
-        return self.upstream_links.flow.abs().sum()
+        outflow = 0
+        for link in self.upstream_links:
+            outflow += abs(link.flow)
+        return outflow
 
     @property
     def outflow(self):
-        if len(self.downstream_links) == 0:
-            return 0
+        outflow = 0
+        for link in self.downstream_links:
+            outflow += abs(link.flow)
+        return outflow
         """ calculates all the water flowing out of the node """
-        return self.downstream_links.flow.abs().sum()
 
 class Reservoir(Node):
     """ EPANET Reservoir Class """
