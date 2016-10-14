@@ -53,16 +53,19 @@
 [PATTERNS]
 ;ID              	Multipliers
 ;
- 1               	1           	2           	3           	4           
+ 1               	1           	2           	3           	4           	5           	4           
+ 1               	3           	2           	1           	1           
 
 [CURVES]
 ;ID              	X-Value     	Y-Value
-;PUMP: 
+;PUMP: PUMP: 
  1               	100         	50          
 
 [CONTROLS]
 
+
 [RULES]
+
 
 [ENERGY]
  Global Efficiency  	75
@@ -95,15 +98,15 @@
 ;Tank            	Model
 
 [TIMES]
- Duration           	0
- Hydraulic Timestep 	1:00
- Quality Timestep   	0:05
- Pattern Timestep   	1:00
- Pattern Start      	0:00
- Report Timestep    	1:00
- Report Start       	0:00
+ Duration           	10:00
+ Hydraulic Timestep 	1:00 
+ Quality Timestep   	0:05 
+ Pattern Timestep   	1:00 
+ Pattern Start      	0:00 
+ Report Timestep    	1:00 
+ Report Start       	0:00 
  Start ClockTime    	12 am
- Statistic          	None
+ Statistic          	NONE
 
 [REPORT]
  Status             	No
