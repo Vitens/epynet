@@ -55,11 +55,15 @@ class Node(BaseObject):
 
     @property
     def inflow(self):
+        if len(self.upstream_links) == 0:
+            return 0
         """ calculates all the water flowing into the node """
         return self.upstream_links.flow.abs().sum()
 
     @property
     def outflow(self):
+        if len(self.downstream_links) == 0:
+            return 0
         """ calculates all the water flowing out of the node """
         return self.downstream_links.flow.abs().sum()
 
