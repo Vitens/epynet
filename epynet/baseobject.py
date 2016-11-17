@@ -5,12 +5,10 @@ class BaseObject(object):
     static_properties = {}
     properties = {}
 
-    def __init__(self, index):
+    def __init__(self, uid):
 
         # the object index
-        self.index = index
-        # the object id
-        self.uid = self.get_uid(index)
+        self.uid = uid
         # dictionary of static values
         self._static_values = {}
         # dictionary of calculation results, only gets
@@ -19,13 +17,13 @@ class BaseObject(object):
         # list of times
         self.times = []
 
-    def get_uid(self, index):
+    def get_index(self, uid):
         raise NotImplementedError
 
-    def set_object_value(self, index, code, value):
+    def set_object_value(self, uid, code, value):
         raise NotImplementedError
 
-    def get_object_value(self, index, code):
+    def get_object_value(self, uid, code):
         raise NotImplementedError
 
     def reset(self):
@@ -57,10 +55,10 @@ class BaseObject(object):
 
     def set_static_property(self, code, value):
         self._static_values[code] = value
-        self.set_object_value(self.index, code, value)
+        self.set_object_value(self.uid, code, value)
 
     def get_property(self, code):
-        return self.get_object_value(self.index, code)
+        return self.get_object_value(self.uid, code)
 
     def get_static_property(self, code):
         if code not in self._static_values.keys():

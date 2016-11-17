@@ -459,6 +459,51 @@ def ENsetlinkvalue(index, paramcode, value):
 			      ctypes.c_float(value))
     if ierr!=0: raise ENtoolkitError(ierr)
 
+# ---- EPYNET Extensions ---- #
+
+def ENinit(rptfile, binfile, units_code, headloss_code):
+    ierr = _lib.ENinit(ctypes.c_char_p(rptfile), ctypes.c_char_p(binfile), ctypes.c_int(units_code), ctypes.c_int(headloss_code))
+    if ierr!=0: raise ENtoolkitError(ierr)
+
+def ENaddnode(node_id, node_type_code):
+    ierr= _lib.ENaddnode(ctypes.c_char_p(node_id), ctypes.c_int(node_type_code))
+    if ierr!=0: raise ENtoolkitError(ierr)
+
+def ENdeletenode(node_index):
+    ierr= _lib.ENdeletenode(ctypes.c_int(node_index))
+    if ierr!=0: raise ENtoolkitError(ierr)
+
+def ENdeletelink(link_index):
+    ierr= _lib.ENdeletelink(ctypes.c_int(link_index))
+    if ierr!=0: raise ENtoolkitError(ierr)
+
+def ENaddlink(link_id, link_type_code, from_node_id, to_node_id):
+    ierr= _lib.ENaddlink(ctypes.c_char_p(link_id), ctypes.c_int(link_type_code), ctypes.c_char_p(from_node_id), ctypes.c_char_p(to_node_id))
+    if ierr!=0: raise ENtoolkitError(ierr)
+
+def ENsetheadcurveindex(pump_index, curve_index):
+    ierr = _lib.ENsetheadcurveindex(ctypes.c_int(pump_index), ctypes.c_int(curve_index))
+    if ierr!=0: raise ENtoolkitError(ierr)
+
+def ENgetheadcurveindex(pump_index):
+    j= ctypes.c_int()
+    ierr = _lib.ENsetheadcurveindex(ctypes.c_int(pump_index), ctypes.byref(j))
+    if ierr!=0: raise ENtoolkitError(ierr)
+    return j.value
+
+def ENaddcurve(curve_id):
+    ierr = _lib.ENaddcurve(ctypes.c_char_p(curve_id))
+    if ierr!=0: raise ENtoolkitError(ierr)
+
+def ENsetcurvevalue(curve_index,point_index, x ,y):
+    ierr = _lib.ENsetcurvevalue(ctypes.c_int(curve_index), ctypes.c_int(point_index), ctypes.c_float(x), ctypes.c_float(y))
+    if ierr!=0: raise ENtoolkitError(ierr)
+
+def ENsetcoord(index, x, y):
+    ierr= _lib.ENsetcoord(ctypes.c_int(index), 
+                         ctypes.c_float(x),
+                         ctypes.c_float(y))
+    if ierr!=0: raise ENtoolkitError(ierr)
 
 def ENaddpattern(patternid):
     """Adds a new time pattern to the network.
@@ -751,40 +796,72 @@ class ENtoolkitError(Exception):
 # it may change in future versions
 #----------------------------------------------------------------------------------
 if hasattr(_lib,"ENgetcurve"):
-   def ENgetcurve(curveIndex):
-       curveid = ctypes.create_string_buffer(_max_label_len)
-       nValues = ctypes.c_int()
-       xValues= ctypes.POINTER(ctypes.c_float)()
-       yValues= ctypes.POINTER(ctypes.c_float)()
-       ierr= _lib.ENgetcurve(curveIndex,
-                             ctypes.byref(curveid),
-	     	             ctypes.byref(nValues),
-	     	             ctypes.byref(xValues),
-	     	             ctypes.byref(yValues)
-		             )
-       # strange behavior of ENgetcurve: it returns also curveID
-       # better split in two distinct functions ....
-       if ierr!=0: raise ENtoolkitError(ierr)
-       curve= []
-       for i in range(nValues.value):
-          curve.append( (xValues[i],yValues[i]) )
-       return curve
+    def ENgetcurve(curveIndex):
+        curveid = ctypes.create_string_buffer(_max_label_len)
+        nValues = ctypes.c_int()
+        xValues= ctypes.POINTER(ctypes.c_float)()
+        yValues= ctypes.POINTER(ctypes.c_float)()
+        ierr= _lib.ENgetcurve(curveIndex,
+                              ctypes.byref(curveid),
+              	             ctypes.byref(nValues),
+              	             ctypes.byref(xValues),
+              	             ctypes.byref(yValues)
+         	             )
+        # strange behavior of ENgetcurve: it returns also curveID
+        # better split in two distinct functions ....
+        if ierr!=0: raise ENtoolkitError(ierr)
+        curve= []
+        for i in range(nValues.value):
+           curve.append( (xValues[i],yValues[i]) )
+        return curve
 
-   def ENgetcurveid(curveIndex):
-       curveid = ctypes.create_string_buffer(_max_label_len)
-       nValues = ctypes.c_int()
-       xValues= ctypes.POINTER(ctypes.c_float)()
-       yValues= ctypes.POINTER(ctypes.c_float)()
-       ierr= _lib.ENgetcurve(curveIndex,
-                             ctypes.byref(curveid),
-	     	             ctypes.byref(nValues),
-	     	             ctypes.byref(xValues),
-	     	             ctypes.byref(yValues)
-		             )
-       # strange behavior of ENgetcurve: it returns also curveID
-       # better split in two distinct functions ....
-       if ierr!=0: raise ENtoolkitError(ierr)
-       return curveid.value
+    def ENsetcurve(curveIndex, values):
+        nValues = len(values)
+        Values_type = ctypes.c_float* nValues
+        xValues = Values_type()
+        yValues = Values_type()
+        for i in range(nValues):
+            xValues[i] = float(values[i][0])
+            yValues[i] = float(values[i][1])
+
+        ierr = _lib.ENsetcurve(curveIndex, xValues, yValues, nValues)
+        if ierr!=0: raise ENtoolkitError(ierr)
+    
+
+    def ENgetcurveid(curveIndex):
+        curveid = ctypes.create_string_buffer(_max_label_len)
+        nValues = ctypes.c_int()
+        xValues= ctypes.POINTER(ctypes.c_float)()
+        yValues= ctypes.POINTER(ctypes.c_float)()
+        ierr= _lib.ENgetcurve(curveIndex,
+                              ctypes.byref(curveid),
+  	     	              ctypes.byref(nValues),
+ 	     	              ctypes.byref(xValues),
+ 	     	              ctypes.byref(yValues)
+ 		              )
+        # strange behavior of ENgetcurve: it returns also curveID
+        # better split in two distinct functions ....
+        if ierr!=0: raise ENtoolkitError(ierr)
+        return curveid.value
+
+    def ENgetcurveindex(curveId):
+        j= ctypes.c_int()
+        ierr= _lib.ENgetcurveindex(ctypes.c_char_p(curveId.encode()), ctypes.byref(j))
+        if ierr!=0: raise ENtoolkitError(ierr)
+        return j.value
+
+    def ENgetcurvelen(curveIndex):
+        j= ctypes.c_int()
+        ierr= _lib.ENgetcurvelen(ctypes.c_int(curveIndex), ctypes.byref(j))
+        if ierr!=0: raise ENtoolkitError(ierr)
+        return j.value
+
+    def ENgetcurvevalue(curveIndex, point):
+        x = ctypes.c_float()
+        y = ctypes.c_float()
+        ierr= _lib.ENgetcurvevalue(ctypes.c_int(curveIndex), ctypes.c_int(point-1), ctypes.byref(x), ctypes.byref(y))
+        if ierr!=0: raise ENtoolkitError(ierr)
+        return x.value, y.value
 
 #-----end of functions added from OpenWaterAnalytics ----------------------------------
 
@@ -882,6 +959,10 @@ EN_LPM           = 6
 EN_MLD           = 7
 EN_CMH           = 8
 EN_CMD           = 9
+
+EN_HW            = 0
+EN_DW            = 1
+EN_CM            = 2
 
 EN_TRIALS        = 0      # /* Misc. options */
 EN_ACCURACY      = 1

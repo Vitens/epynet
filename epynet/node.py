@@ -9,18 +9,24 @@ class Node(BaseObject):
     static_properties = {'elevation': ep.EN_ELEVATION}
     properties = {'head': ep.EN_HEAD, 'pressure': ep.EN_PRESSURE}
 
-    def __init__(self, index):
-        super(Node, self).__init__(index)
+    def __init__(self, uid):
+        super(Node, self).__init__(uid)
         self.links = ObjectCollection()
 
-    def get_uid(self, index):
-        return ep.ENgetnodeid(index)
+    def get_index(self, uid):
+        return ep.ENgetnodeindex(uid)
 
-    def set_object_value(self, index, code, value):
+    def set_object_value(self, uid, code, value):
+        index = self.get_index(uid)
         return ep.ENsetnodevalue(index, code, value)
 
-    def get_object_value(self, index, code):
+    def get_object_value(self, uid, code):
+        index = self.get_index(uid)
         return ep.ENgetnodevalue(index, code)
+
+    @property
+    def index(self):
+        return self.get_index(self.uid)
 
     @property
     def coordinates(self):
@@ -74,10 +80,30 @@ class Reservoir(Node):
 
 class Junction(Node):
     """ EPANET Junction Class """
-
     static_properties = {'elevation': ep.EN_ELEVATION, 'basedemand': ep.EN_BASEDEMAND}
     properties = {'head': ep.EN_HEAD, 'pressure': ep.EN_PRESSURE, 'demand': ep.EN_DEMAND}
     node_type = "Junction"
+
+    @property
+    def pattern(self):
+        pattern_index = self.get_property(ep.EN_PATTERN)
+        uid = ep.ENgetpatternid(pattern_index)
+        return Pattern(uid)
+
+    @pattern.setter
+    def pattern(self, value):
+        if isinstance(value, int):
+            pattern_index = value
+        elif isinstance(value, str):
+            pattern_index = ep.ENgetpatternindex(value)
+        else:
+            pattern_index = value.index
+
+        self.set_object_value(self.uid, ep.EN_PATTERN, pattern_index)
+
+
+
+
 
 class Tank(Node):
     """ EPANET Tank Class """
@@ -86,5 +112,6 @@ class Tank(Node):
     static_properties = {'elevation': ep.EN_ELEVATION, 'basedemand': ep.EN_BASEDEMAND,
                          'initvolume': ep.EN_INITVOLUME, 'diameter': ep.EN_TANKDIAM,
                          'minvolume': ep.EN_MINVOLUME, 'minlevel': ep.EN_MINLEVEL,
-                         'maxlevel': ep.EN_MAXLEVEL, 'maxvolume': 25}
-    properties = {'head': ep.EN_HEAD, 'pressure': ep.EN_PRESSURE, 'demand': ep.EN_DEMAND, 'volume': 24, 'level': ep.EN_TANKLEVEL}
+                         'maxlevel': ep.EN_MAXLEVEL, 'maxvolume': 25, 'tanklevel': ep.EN_TANKLEVEL}
+    properties = {'head': ep.EN_HEAD, 'pressure': ep.EN_PRESSURE, 
+                  'demand': ep.EN_DEMAND, 'volume': 24, 'level': ep.EN_TANKLEVEL}
