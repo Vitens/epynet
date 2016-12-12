@@ -99,7 +99,6 @@ class Network(object):
         index = ep.ENgetnodeindex(uid)
         node_type = ep.ENgetnodetype(index)
 
-
         for link in self.nodes[uid].links:
             self.delete_link(link.uid);
 
