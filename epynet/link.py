@@ -1,7 +1,7 @@
 """ EPYNET Classes """
-import epanet2 as ep
-from baseobject import BaseObject
-from curve import Curve
+from . import epanet2 as ep
+from .baseobject import BaseObject
+from .curve import Curve
 
 
 class Link(BaseObject):

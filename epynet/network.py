@@ -1,12 +1,12 @@
 """ EPYNET Classes """
 import math
 
-import epanet2 as ep
-from objectcollection import ObjectCollection
-from node import *
-from link import * 
-from curve import *
-from pattern import *
+from . import epanet2 as ep
+from .objectcollection import ObjectCollection
+from .node import *
+from .link import * 
+from .curve import *
+from .pattern import *
 
 class Network(object):
     """ EPANET Network Simulation Class """
@@ -21,7 +21,7 @@ class Network(object):
         else:
             self.rptfile = "net.rpt"
             self.binfile = "net.bin"
-            ep.ENinit(self.rptfile, self.binfile, units, headloss)
+            ep.ENinit(self.rptfile.encode(), self.binfile.encode(), units, headloss)
 
         # prepare network data
         self.nodes = ObjectCollection()
@@ -92,14 +92,19 @@ class Network(object):
             self.patterns[uid] = Pattern(uid)
 
     def reset(self):
-        map(lambda obj: obj.reset(), self.links)
-        map(lambda obj: obj.reset(), self.nodes)
+
+        for link in self.links:
+            link.reset()
+        for node in self.nodes:
+            node.reset()
 
     def delete_node(self, uid):
         index = ep.ENgetnodeindex(uid)
         node_type = ep.ENgetnodetype(index)
 
-        for link in self.nodes[uid].links:
+
+
+        for link in list(self.nodes[uid].links):
             self.delete_link(link.uid);
 
         del self.nodes[uid]
@@ -212,15 +217,15 @@ class Network(object):
 
     def add_valve(self, uid, valve_type, from_node, to_node):
 
-        if valve_type.lower() == 'gpv':
+        if valve_type.lower() == "gpv":
             valve_type_code = ep.EN_GPV
-        elif valve_type.lower() == 'fcv':
+        elif valve_type.lower() == "fcv":
             valve_type_code = ep.EN_FCV
-        elif valve_type.lower() == 'pbv':
+        elif valve_type.lower() == "pbv":
             valve_type_code = ep.EN_PBV
-        elif valve_type.lower() == 'tcv':
+        elif valve_type.lower() == "tcv":
             valve_type_code = ep.EN_TCV
-        elif valve_type == 'prv':
+        elif valve_type == "prv":
             valve_type_code = ep.EN_PRV
 
         ep.ENaddlink(uid, valve_type_code, from_node, to_node)

@@ -96,7 +96,6 @@ class TestGeneratedNetwork(object):
         # test0 the properties of a single link
         link = self.network.links['11']
         # pipe index and uid
-        assert_equal(link.index,9)
         assert_equal(link.uid,'11')
         # from/to node
         assert_equal(link.from_node.uid,'4')
@@ -243,6 +242,7 @@ class TestGeneratedNetwork(object):
         assert_almost_equal(self.network.pipes.velocity.mean().mean(),1.14,2)
         # test revert to steady state calculation
         self.network.solve()
+        print(type(self.network.pipes['1'].velocity))
         assert(isinstance(self.network.pipes['1'].velocity, float))
         assert(isinstance(self.network.pipes.velocity, pd.Series))
 

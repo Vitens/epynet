@@ -1,5 +1,6 @@
 import collections
 import pandas as pd
+import pudb
 
 class ObjectCollection(dict):
 
@@ -7,7 +8,7 @@ class ObjectCollection(dict):
     def __getattr__(self,name):
         values = {}
 
-        for key, item in self.iteritems():
+        for key, item in self.items():
             values[item.uid] = getattr(item,name)
 
         if isinstance(values[item.uid], pd.Series):
@@ -18,11 +19,11 @@ class ObjectCollection(dict):
     def __setattr__(self, name, value):
 
         if isinstance(value, pd.Series):
-            for key, item in self.iteritems():
+            for key, item in self.items():
                 setattr(item,name,value[item.uid])
             return
 
-        for key, item in self.iteritems():
+        for key, item in self.items():
             setattr(item,name,value)
 
     def __getitem__(self, key):

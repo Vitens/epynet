@@ -97,7 +97,7 @@ def ENgetnodeid(index):
     label = ctypes.create_string_buffer(_max_label_len)
     ierr= _lib.ENgetnodeid(index, ctypes.byref(label))
     if ierr!=0: raise ENtoolkitError(ierr)
-    return label.value
+    return label.value.decode()
 
 
 def ENgetnodetype(index):
@@ -182,7 +182,7 @@ def ENgetlinkid(index):
     label = ctypes.create_string_buffer(_max_label_len)
     ierr= _lib.ENgetlinkid(index, ctypes.byref(label))
     if ierr!=0: raise ENtoolkitError(ierr)
-    return label.value
+    return label.value.decode()
 
 
 def ENgetlinktype(index):
@@ -466,7 +466,7 @@ def ENinit(rptfile, binfile, units_code, headloss_code):
     if ierr!=0: raise ENtoolkitError(ierr)
 
 def ENaddnode(node_id, node_type_code):
-    ierr= _lib.ENaddnode(ctypes.c_char_p(node_id), ctypes.c_int(node_type_code))
+    ierr= _lib.ENaddnode(ctypes.c_char_p(node_id.encode()), ctypes.c_int(node_type_code))
     if ierr!=0: raise ENtoolkitError(ierr)
 
 def ENdeletenode(node_index):
@@ -478,7 +478,7 @@ def ENdeletelink(link_index):
     if ierr!=0: raise ENtoolkitError(ierr)
 
 def ENaddlink(link_id, link_type_code, from_node_id, to_node_id):
-    ierr= _lib.ENaddlink(ctypes.c_char_p(link_id), ctypes.c_int(link_type_code), ctypes.c_char_p(from_node_id), ctypes.c_char_p(to_node_id))
+    ierr= _lib.ENaddlink(ctypes.c_char_p(link_id.encode()), ctypes.c_int(link_type_code), ctypes.c_char_p(from_node_id.encode()), ctypes.c_char_p(to_node_id.encode()))
     if ierr!=0: raise ENtoolkitError(ierr)
 
 def ENsetheadcurveindex(pump_index, curve_index):
@@ -492,7 +492,7 @@ def ENgetheadcurveindex(pump_index):
     return j.value
 
 def ENaddcurve(curve_id):
-    ierr = _lib.ENaddcurve(ctypes.c_char_p(curve_id))
+    ierr = _lib.ENaddcurve(ctypes.c_char_p(curve_id.encode()))
     if ierr!=0: raise ENtoolkitError(ierr)
 
 def ENsetcurvevalue(curve_index,point_index, x ,y):
@@ -842,7 +842,7 @@ if hasattr(_lib,"ENgetcurve"):
         # strange behavior of ENgetcurve: it returns also curveID
         # better split in two distinct functions ....
         if ierr!=0: raise ENtoolkitError(ierr)
-        return curveid.value
+        return curveid.value.decode()
 
     def ENgetcurveindex(curveId):
         j= ctypes.c_int()

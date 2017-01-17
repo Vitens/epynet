@@ -1,7 +1,8 @@
 """ EPYNET Classes """
-import epanet2 as ep
-from objectcollection import ObjectCollection
-from baseobject import BaseObject
+from . import epanet2 as ep
+from .objectcollection import ObjectCollection
+from .baseobject import BaseObject
+import pudb
 
 class Node(BaseObject):
     """ Base EPANET Node class """
@@ -55,7 +56,7 @@ class Node(BaseObject):
 
         links = ObjectCollection()
         for link in self.links:
-            if (link.from_node == self and link.flow >= 0) or (link.to_node == self and link.flow < 0):
+            if (link.from_node == self and link.flow >= 1e-3) or (link.to_node == self and link.flow < -1e-3):
                 links[link.uid] = link
         return links
 

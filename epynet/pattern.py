@@ -1,5 +1,5 @@
-import epanet2 as ep
-from baseobject import BaseObject
+from . import epanet2 as ep
+from .baseobject import BaseObject
 
 class Pattern(object):
 
