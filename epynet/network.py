@@ -169,6 +169,10 @@ class Network(object):
 
 
     def add_pipe(self, uid, from_node, to_node, check_valve=False):
+
+        from_node = from_node if isinstance(from_node,str) else from_node.uid
+        to_node = to_node if isinstance(to_node,str) else to_node.uid
+
         if check_valve:
             ep.ENaddlink(uid, ep.EN_CVPIPE, from_node, to_node)
         else:
@@ -186,6 +190,10 @@ class Network(object):
         return link
 
     def add_pump(self, uid, from_node, to_node):
+
+        from_node = from_node if isinstance(from_node,str) else from_node.uid
+        to_node = to_node if isinstance(to_node,str) else to_node.uid
+
         ep.ENaddlink(uid, ep.EN_PUMP, from_node, to_node)
         index = ep.ENgetlinkindex(uid)
         link = Pump(uid)
@@ -216,6 +224,9 @@ class Network(object):
         return pattern
 
     def add_valve(self, uid, valve_type, from_node, to_node):
+
+        from_node = from_node if isinstance(from_node,str) else from_node.uid
+        to_node = to_node if isinstance(to_node,str) else to_node.uid
 
         if valve_type.lower() == "gpv":
             valve_type_code = ep.EN_GPV
@@ -281,3 +292,7 @@ class Network(object):
                     link.results[property_name] = []
                 link.results[property_name].append(link.get_property(link.properties[property_name]))
             link.times.append(simtime)
+
+    def save_inputfile(self, name):
+        ep.ENsaveinpfile(name)
+
