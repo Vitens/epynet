@@ -46,28 +46,17 @@ class TestGeneratedNetwork(object):
                  '12':('9','11')}
 
         for uid, coord in junctions.items():
-            node = network.add_junction(uid, coord[0], coord[1])
-            node.basedemand = coord[2]
+            node = network.add_junction(uid, coord[0], coord[1], elevation=0, basedemand=coord[2])
             node.pattern = pattern
 
-        tank = network.add_tank('11',40,40)
-        tank.diameter = 50
-        tank.maxlevel = 20
-        tank.minlevel = 0
-        tank.tanklevel = 10 
+        tank = network.add_tank('11',40,40, diameter=50, maxlevel=20, minlevel=0, tanklevel=10)
 
         for uid, coord in links.items():
-            link = network.add_pipe(uid, coord[0], coord[1])
-            link.diameter = 100
-            link.length = 100
-            link.roughness = 0.1
+            link = network.add_pipe(uid, coord[0], coord[1], diameter=100, length=100, roughness=0.1)
 
-        valve = network.add_valve('9','prv','9','10')
-        valve.diameter = 100
-        valve.setting = 5
+        valve = network.add_valve('9','prv','9','10', diameter=100, setting=5)
 
-        pump = network.add_pump('2','2','3')
-        pump.speed = 1
+        pump = network.add_pump('2','2','3', speed=1)
 
         curve = network.add_curve('1',[(100,50)])
         pump.curve = curve

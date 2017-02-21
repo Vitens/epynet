@@ -37,6 +37,8 @@ class Network(object):
         self.curves = ObjectCollection()
         self.patterns = ObjectCollection()
 
+        self.solved = False
+
         self.load_network()
 
     def load_network(self):
@@ -93,6 +95,8 @@ class Network(object):
 
     def reset(self):
 
+        self.solved = False
+
         for link in self.links:
             link.reset()
         for node in self.nodes:
@@ -101,8 +105,6 @@ class Network(object):
     def delete_node(self, uid):
         index = ep.ENgetnodeindex(uid)
         node_type = ep.ENgetnodetype(index)
-
-
 
         for link in list(self.nodes[uid].links):
             self.delete_link(link.uid);
@@ -138,7 +140,7 @@ class Network(object):
 
         ep.ENdeletelink(index)
 
-    def add_reservoir(self, uid, x, y):
+    def add_reservoir(self, uid, x, y, elevation=0):
         ep.ENaddnode(uid, ep.EN_RESERVOIR)
         index = ep.ENgetnodeindex(uid)
         ep.ENsetcoord(index, x, y)
@@ -148,7 +150,7 @@ class Network(object):
 
         return node
 
-    def add_junction(self, uid, x, y):
+    def add_junction(self, uid, x, y, basedemand=0, elevation=0):
         ep.ENaddnode(uid, ep.EN_JUNCTION)
         index = ep.ENgetnodeindex(uid)
         ep.ENsetcoord(index, x, y)
@@ -156,19 +158,28 @@ class Network(object):
         self.junctions[uid] = node
         self.nodes[uid] = node
 
+        # configure node
+        node.basedemand = basedemand
+        node.elevation = elevation
+
         return node
 
-    def add_tank(self, uid, x, y):
+    def add_tank(self, uid, x, y, diameter=0, maxlevel=0, minlevel=0, tanklevel=0):
         ep.ENaddnode(uid, ep.EN_TANK)
         index = ep.ENgetnodeindex(uid)
         ep.ENsetcoord(index, x, y)
         node = Tank(uid)
         self.tanks[uid] = node
         self.nodes[uid] = node
+        # config tank
+        node.diameter = diameter
+        node.maxlevel = maxlevel
+        node.minlevel = minlevel
+        node.tanklevel = tanklevel
         return node
 
 
-    def add_pipe(self, uid, from_node, to_node, check_valve=False):
+    def add_pipe(self, uid, from_node, to_node, diameter=100, length=10, roughness=0.1, check_valve=False):
 
         from_node = from_node if isinstance(from_node,str) else from_node.uid
         to_node = to_node if isinstance(to_node,str) else to_node.uid
@@ -180,6 +191,11 @@ class Network(object):
 
         index = ep.ENgetlinkindex(uid)
         link = Pipe(uid)
+
+        link.diameter = diameter
+        link.length = length
+        link. roughness = roughness
+
         link.from_node = self.nodes[from_node]
         link.to_node = self.nodes[to_node]
         link.to_node.links[link.uid] = link
@@ -187,9 +203,13 @@ class Network(object):
         self.pipes[uid] = link
         self.links[uid] = link
 
+        # set link properties
+        link.diameter = diameter
+        link.length = length
+
         return link
 
-    def add_pump(self, uid, from_node, to_node):
+    def add_pump(self, uid, from_node, to_node, speed=0):
 
         from_node = from_node if isinstance(from_node,str) else from_node.uid
         to_node = to_node if isinstance(to_node,str) else to_node.uid
@@ -197,7 +217,9 @@ class Network(object):
         ep.ENaddlink(uid, ep.EN_PUMP, from_node, to_node)
         index = ep.ENgetlinkindex(uid)
         link = Pump(uid)
+        link.speed = speed
         link.from_node = self.nodes[from_node]
+        link.speed = speed
         link.to_node = self.nodes[to_node]
         link.to_node.links[link.uid] = link
         link.from_node.links[link.uid] = link
@@ -223,7 +245,7 @@ class Network(object):
 
         return pattern
 
-    def add_valve(self, uid, valve_type, from_node, to_node):
+    def add_valve(self, uid, valve_type, from_node, to_node, diameter=100, setting=0):
 
         from_node = from_node if isinstance(from_node,str) else from_node.uid
         to_node = to_node if isinstance(to_node,str) else to_node.uid
@@ -238,10 +260,14 @@ class Network(object):
             valve_type_code = ep.EN_TCV
         elif valve_type == "prv":
             valve_type_code = ep.EN_PRV
+        else:
+            raise InputError("Unknown Valve Type")
 
         ep.ENaddlink(uid, valve_type_code, from_node, to_node)
         index = ep.ENgetlinkindex(uid)
         link = Valve(uid)
+        link.diameter = diameter
+        link.setting = setting
         link.from_node = self.nodes[from_node]
         link.to_node = self.nodes[to_node]
         link.to_node.links[link.uid] = link
@@ -251,7 +277,18 @@ class Network(object):
 
         return link
 
+    def get_warnings(self):
+        """ Get EPANET2 GUI style warning messages """
+        warnings = []
+        if not self.solved:
+            raise ValueError('This function only works for single-step solved networks')
 
+        # check fcv
+        for valve in self.valves:
+            if valve.valve_type == 'FCV' and valve.flow < valve.setting:
+                warnings.append("FCV "+valve.uid+" unable to deliver flow")
+
+        return warnings
 
     def solve(self, simtime=0):
         """ Solve Hydraulic Network for Single Timestep"""
@@ -261,6 +298,7 @@ class Network(object):
         ep.ENinitH(0)
         ep.ENrunH()
         ep.ENcloseH()
+        self.solved = True
 
     def run(self):
         self.reset()
