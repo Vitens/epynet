@@ -145,6 +145,7 @@ class Network(object):
         index = ep.ENgetnodeindex(uid)
         ep.ENsetcoord(index, x, y)
         node = Reservoir(uid)
+        node.elevation = elevation
         self.reservoirs[uid] = node
         self.nodes[uid] = node
 
@@ -194,7 +195,7 @@ class Network(object):
 
         link.diameter = diameter
         link.length = length
-        link. roughness = roughness
+        link.roughness = roughness
 
         link.from_node = self.nodes[from_node]
         link.to_node = self.nodes[to_node]
