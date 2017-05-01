@@ -12,28 +12,31 @@ EPYNET is an object oriented wrapper around the EPANET 2.1 community edition hyd
 - [x] Manipulation of valve and pump settings
 - [x] Manipulation of pipe, junction, reservoir and tank settings
 - [x] Support for time series
-- [ ] [TODO] Pattern and Curve creation and manipulation
+- [x] Pattern and Curve creation and manipulation
+- [x] Create and remove nodes and links
 - [ ] [TODO] Chemical calculations
 
 ## Example Usage
 ```python
 # load a network
 from epynet import Network
-network = new Network('network.inp')
+network = Network('network.inp')
 # solve network
 network.solve()
 # properties
-print network.pipes['4'].flow
-print network.nodes['1'].demand
+print(network.pipes['4'].flow)
+print(network.nodes['1'].demand)
 # valve manipulation
 network.valves['12'].setting = 10
 # convinience properties
-print network.pipes['5'].downstream_node.pressure
-print network.nodes['1'].upstream_links[0].velocity
+print(network.pipes['5'].downstream_node.pressure)
+print(network.nodes['1'].upstream_links[0].velocity)
 # pandas integration
-print network.pipes.flow
-print network.pipes.length[network.pipes.velocity > 1]
-print network.nodes.demand[network.nodes.pressure < 10].max()
+print(network.pipes.flow)
+print(network.pipes.length[network.pipes.velocity > 1])
+print(network.nodes.demand[network.nodes.pressure < 10].max())
+# network manipulaton
+network.add_node('nodeid', x=
 ```
 
 ## Installation
