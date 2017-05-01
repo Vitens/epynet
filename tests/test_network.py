@@ -154,6 +154,7 @@ class TestNetwork(object):
         assert_almost_equal(self.network.pipes.diameter.mean(),605,2)
 
         self.network.pipes.diameter -= 500
+        self.network.solve()
 
         # resize pipes, and recalculate velocity
         self.network.pipes[self.network.pipes.velocity > 3].diameter += 100

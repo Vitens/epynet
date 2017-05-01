@@ -48,7 +48,7 @@ class Network(object):
         # load nodes
         for index in range(1, self.ep.ENgetcount(epanet2.EN_NODECOUNT)+1):
             # get node type
-            node_type =self.ep.ENgetnodetype(index)
+            node_type = self.ep.ENgetnodetype(index)
             uid = self.ep.ENgetnodeid(index)
 
             if node_type == 0:
@@ -331,6 +331,9 @@ class Network(object):
 
         simtime = 0
         timestep = 1
+
+        self.solved = True
+
         while timestep > 0:
             self.ep.ENrunH()
             timestep = self.ep.ENnextH()
@@ -338,13 +341,13 @@ class Network(object):
             self.load_attributes(simtime)
             simtime += timestep
 
-        self.solved = True
-
     def load_attributes(self, simtime):
         for node in self.nodes:
             for property_name in node.properties.keys():
                 if property_name not in node.results.keys():
                     node.results[property_name] = []
+                # clear cached values
+                node._values = {}
                 node.results[property_name].append(node.get_property(node.properties[property_name]))
             node.times.append(simtime)
 
@@ -352,6 +355,8 @@ class Network(object):
             for property_name in link.properties.keys():
                 if property_name not in link.results.keys():
                     link.results[property_name] = []
+                # clear cached values
+                link._values = {}
                 link.results[property_name].append(link.get_property(link.properties[property_name]))
             link.times.append(simtime)
 

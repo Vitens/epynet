@@ -1,4 +1,4 @@
-from epynet import Network
+from epynet import Network, epanet2
 from nose.tools import assert_equal, assert_almost_equal
 import pandas as pd
 
@@ -15,7 +15,7 @@ class TestGeneratedNetwork(object):
     def test00_build_network(self):
         network = self.network
 
-        network.ep.ENsettimeparam(network.ep.EN_DURATION, 10*3600)
+        network.ep.ENsettimeparam(epanet2.EN_DURATION, 10*3600)
         # add nodes
         reservoir = network.add_reservoir('in',0,30)
         reservoir.elevation = 10
@@ -209,7 +209,7 @@ class TestGeneratedNetwork(object):
         assert_almost_equal(self.network.pipes.diameter.mean(),605,2)
 
         self.network.pipes.diameter -= 500
-
+        self.network.solve()
         # resize pipes, and recalculate velocity
         self.network.pipes[self.network.pipes.velocity > 3].diameter += 100
         self.network.solve()
