@@ -17,4 +17,5 @@ install:
   - activate test-environment
 
 test_script:
+  - python setup.py install
   - nosetests -v
