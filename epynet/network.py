@@ -1,17 +1,15 @@
-""" self.epYNET Classes """
-import math
-
+""" EPYNET Classes """
 from . import epanet2
-
 from .objectcollection import ObjectCollection
-from .node import *
-from .link import * 
-from .curve import *
-from .pattern import *
+from .node import Junction, Tank, Reservoir
+from .link import Pipe, Valve, Pump
+from .curve import Curve
+from .pattern import Pattern
+
 
 class Network(object):
     """ self.epANET Network Simulation Class """
-    def __init__(self, inputfile = None, units = epanet2.EN_CMH, headloss = epanet2.EN_DW):
+    def __init__(self, inputfile=None, units=epanet2.EN_CMH, headloss=epanet2.EN_DW):
 
         self.ep = epanet2.EPANET2()
 
@@ -190,18 +188,16 @@ class Network(object):
 
         return node
 
-
     def add_pipe(self, uid, from_node, to_node, diameter=100, length=10, roughness=0.1, check_valve=False):
 
-        from_node = from_node if isinstance(from_node,str) else from_node.uid
-        to_node = to_node if isinstance(to_node,str) else to_node.uid
+        from_node = from_node if isinstance(from_node, str) else from_node.uid
+        to_node = to_node if isinstance(to_node, str) else to_node.uid
 
         if check_valve:
             self.ep.ENaddlink(uid, epanet2.EN_CVPIPE, from_node, to_node)
         else:
             self.ep.ENaddlink(uid, epanet2.EN_PIPE, from_node, to_node)
 
-        index = self.ep.ENgetlinkindex(uid)
         link = Pipe(uid, self)
 
         link.diameter = diameter
@@ -225,11 +221,10 @@ class Network(object):
 
     def add_pump(self, uid, from_node, to_node, speed=0):
 
-        from_node = from_node if isinstance(from_node,str) else from_node.uid
-        to_node = to_node if isinstance(to_node,str) else to_node.uid
+        from_node = from_node if isinstance(from_node, str) else from_node.uid
+        to_node = to_node if isinstance(to_node, str) else to_node.uid
 
         self.ep.ENaddlink(uid, epanet2.EN_PUMP, from_node, to_node)
-        index = self.ep.ENgetlinkindex(uid)
         link = Pump(uid, self)
         link.speed = speed
         link.from_node = self.nodes[from_node]
@@ -263,8 +258,8 @@ class Network(object):
 
     def add_valve(self, uid, valve_type, from_node, to_node, diameter=100, setting=0):
 
-        from_node = from_node if isinstance(from_node,str) else from_node.uid
-        to_node = to_node if isinstance(to_node,str) else to_node.uid
+        from_node = from_node if isinstance(from_node, str) else from_node.uid
+        to_node = to_node if isinstance(to_node, str) else to_node.uid
 
         if valve_type.lower() == "gpv":
             valve_type_code = epanet2.EN_GPV
@@ -277,10 +272,9 @@ class Network(object):
         elif valve_type == "prv":
             valve_type_code = epanet2.EN_PRV
         else:
-            raise InputError("Unknown Valve Type")
+            raise ValueError("Unknown Valve Type")
 
         self.ep.ENaddlink(uid, valve_type_code, from_node, to_node)
-        index = self.ep.ENgetlinkindex(uid)
         link = Valve(uid, self)
         link.diameter = diameter
         link.setting = setting
@@ -315,7 +309,7 @@ class Network(object):
             return
 
         self.reset()
-        self.ep.ENsettimeparam(4,simtime)
+        self.ep.ENsettimeparam(4, simtime)
         self.ep.ENopenH()
         self.ep.ENinitH(0)
         self.ep.ENrunH()
@@ -363,4 +357,3 @@ class Network(object):
 
     def save_inputfile(self, name):
         self.ep.ENsaveinpfile(name)
-
