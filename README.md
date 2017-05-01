@@ -36,7 +36,9 @@ print(network.pipes.flow)
 print(network.pipes.length[network.pipes.velocity > 1])
 print(network.nodes.demand[network.nodes.pressure < 10].max())
 # network manipulaton
-network.add_node('nodeid', x=
+network.add_tank('tankid', x=10, y=10, elevation=10)
+network.add_junction('junctionid', x=20, y=10, elevation=5)
+network.add_pipe('tankid', 'junctionid', length=10, diameter=200, roughness=0.1)
 ```
 
 ## Installation
@@ -44,7 +46,7 @@ network.add_node('nodeid', x=
 * ```python setup.py install```
 
 ## Requirements
-* 64 bit Python 2.7
+* 64 bit Python 2.7 or 3
 * Windows, OSX or Linux
 
 ## Unit Tests
