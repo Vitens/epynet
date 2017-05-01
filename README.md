@@ -47,7 +47,7 @@ print network.nodes.demand[network.nodes.pressure < 10].max()
 ## Unit Tests
 | **Mac/Linux** | **Windows** |
 |---|---|
-| [![Build Status](https://travis-ci.org/VitensTC/epynet.svg?branch=master)](https://travis-ci.org/VitensTC/epynet) | [![Build status](https://ci.appveyor.com/api/projects/status/ewa92p50rw5u0yfd?svg=true)](https://ci.appveyor.com/project/AbelHeinsbroek/epynet) |
+| [![Build Status](https://travis-ci.org/Vitens/epynet.svg?branch=master)](https://travis-ci.org/Vitens/epynet) | [![Build status](https://ci.appveyor.com/api/projects/status/ewa92p50rw5u0yfd?svg=true)](https://ci.appveyor.com/project/AbelHeinsbroek/epynet) |
 
 ## Acknowledgements
 This project makes use of the [EPANET 2.1](https://github.com/OpenWaterAnalytics/EPANET) community version and is (partly) derived from the [epanettools](https://github.com/asselapathirana/epanettools) package (Assela Pathirana) and the [epanet-python](https://github.com/OpenWaterAnalytics/epanet-python) library (Maurizio Cingi)
