@@ -2,6 +2,7 @@
 import math
 
 from . import epanet2
+
 from .objectcollection import ObjectCollection
 from .node import *
 from .link import * 
