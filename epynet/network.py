@@ -1,7 +1,7 @@
-""" EPYNET Classes """
+""" self.epYNET Classes """
 import math
 
-from . import epanet2 as ep
+from . import epanet2
 from .objectcollection import ObjectCollection
 from .node import *
 from .link import * 
@@ -9,19 +9,20 @@ from .curve import *
 from .pattern import *
 
 class Network(object):
-    """ EPANET Network Simulation Class """
-    def __init__(self, inputfile = None, units = ep.EN_CMH, headloss = ep.EN_DW):
+    """ self.epANET Network Simulation Class """
+    def __init__(self, inputfile = None, units = epanet2.EN_CMH, headloss = epanet2.EN_DW):
 
-        self.ep = ep
+        self.ep = epanet2.EPANET2()
+
         if inputfile:
             self.inputfile = inputfile
             self.rptfile = self.inputfile[:-3]+"rpt"
             self.binfile = self.inputfile[:-3]+"bin"
-            ep.ENopen(self.inputfile, self.rptfile, self.binfile)
+            self.ep.ENopen(self.inputfile, self.rptfile, self.binfile)
         else:
             self.rptfile = "net.rpt"
             self.binfile = "net.bin"
-            ep.ENinit(self.rptfile.encode(), self.binfile.encode(), units, headloss)
+            self.ep.ENinit(self.rptfile.encode(), self.binfile.encode(), units, headloss)
 
         # prepare network data
         self.nodes = ObjectCollection()
@@ -38,64 +39,66 @@ class Network(object):
         self.patterns = ObjectCollection()
 
         self.solved = False
+        self.solved_for_simtime = None
 
         self.load_network()
 
     def load_network(self):
         """ Load network data """
         # load nodes
-        for index in range(1, ep.ENgetcount(ep.EN_NODECOUNT)+1):
+        for index in range(1, self.ep.ENgetcount(epanet2.EN_NODECOUNT)+1):
             # get node type
-            node_type =ep.ENgetnodetype(index)
-            uid = ep.ENgetnodeid(index)
+            node_type =self.ep.ENgetnodetype(index)
+            uid = self.ep.ENgetnodeid(index)
 
             if node_type == 0:
-                node = Junction(uid)
+                node = Junction(uid, self)
                 self.junctions[node.uid] = node
             elif node_type == 1:
-                node = Reservoir(uid)
+                node = Reservoir(uid, self)
                 self.reservoirs[node.uid] = node
                 self.nodes[node.uid] = node
             else:
-                node = Tank(uid)
+                node = Tank(uid, self)
                 self.tanks[node.uid] = node
 
             self.nodes[node.uid] = node
 
         # load links
-        for index in range(1, ep.ENgetcount(ep.EN_LINKCOUNT)+1):
-            link_type = ep.ENgetlinktype(index)
-            uid = ep.ENgetlinkid(index)
+        for index in range(1, self.ep.ENgetcount(epanet2.EN_LINKCOUNT)+1):
+            link_type = self.ep.ENgetlinktype(index)
+            uid = self.ep.ENgetlinkid(index)
             # pipes
             if link_type <= 1:
-                link = Pipe(uid)
+                link = Pipe(uid, self)
                 self.pipes[link.uid] = link
             elif link_type == 2:
-                link = Pump(uid)
+                link = Pump(uid, self)
                 self.pumps[link.uid] = link
             elif link_type >= 3:
-                link = Valve(uid)
+                link = Valve(uid, self)
                 self.valves[link.uid] = link
 
             self.links[link.uid] = link
-            link_nodes = ep.ENgetlinknodes(index)
-            link.from_node = self.nodes[ep.ENgetnodeid(link_nodes[0])]
+            link_nodes = self.ep.ENgetlinknodes(index)
+            link.from_node = self.nodes[self.ep.ENgetnodeid(link_nodes[0])]
             link.from_node.links[link.uid] = link
-            link.to_node = self.nodes[ep.ENgetnodeid(link_nodes[1])]
+            link.to_node = self.nodes[self.ep.ENgetnodeid(link_nodes[1])]
             link.to_node.links[link.uid] = link
 
         # load curves
-        for index in range(1, ep.ENgetcount(ep.EN_CURVECOUNT)+1):
-            uid = ep.ENgetcurveid(index)
-            self.curves[uid] = Curve(uid)
+        for index in range(1, self.ep.ENgetcount(epanet2.EN_CURVECOUNT)+1):
+            uid = self.ep.ENgetcurveid(index)
+            self.curves[uid] = Curve(uid, self)
         # load patterns
-        for index in range(1, ep.ENgetcount(ep.EN_PATCOUNT)+1):
-            uid = ep.ENgetpatternid(index)
-            self.patterns[uid] = Pattern(uid)
+        for index in range(1, self.ep.ENgetcount(epanet2.EN_PATCOUNT)+1):
+            uid = self.ep.ENgetpatternid(index)
+            self.patterns[uid] = Pattern(uid, self)
 
     def reset(self):
 
         self.solved = False
+        self.solved_for_simtime = None
 
         for link in self.links:
             link.reset()
@@ -103,27 +106,27 @@ class Network(object):
             node.reset()
 
     def delete_node(self, uid):
-        index = ep.ENgetnodeindex(uid)
-        node_type = ep.ENgetnodetype(index)
+        index = self.ep.ENgetnodeindex(uid)
+        node_type = self.ep.ENgetnodetype(index)
 
         for link in list(self.nodes[uid].links):
             self.delete_link(link.uid);
 
         del self.nodes[uid]
 
-        if node_type == ep.EN_JUNCTION:
+        if node_type == epanet2.EN_JUNCTION:
             del self.junctions[uid]
-        elif node_type == ep.EN_RESERVOIR:
+        elif node_type == epanet2.EN_RESERVOIR:
             del self.reservoirs[uid]
-        elif node_type == ep.EN_TANK:
+        elif node_type == epanet2.EN_TANK:
             del self.tanks[uid]
 
-        ep.ENdeletenode(index)
+        self.ep.ENdeletenode(index)
 
     def delete_link(self, uid):
 
-        index = ep.ENgetlinkindex(uid)
-        link_type = ep.ENgetlinktype(index)
+        index = self.ep.ENgetlinkindex(uid)
+        link_type = self.ep.ENgetlinktype(index)
 
         link = self.links[uid]
         del link.from_node.links[uid]
@@ -131,31 +134,33 @@ class Network(object):
 
         del self.links[uid]
 
-        if link_type == ep.EN_PIPE or link_type == ep.EN_CVPIPE:
+        if link_type == epanet2.EN_PIPE or link_type == epanet2.EN_CVPIPE:
             del self.pipes[uid]
-        elif link_type == ep.EN_RESERVOIR:
+        elif link_type == epanet2.EN_RESERVOIR:
             del self.pumps[uid]
         else:
             del self.valves[uid]
 
-        ep.ENdeletelink(index)
+        self.ep.ENdeletelink(index)
 
     def add_reservoir(self, uid, x, y, elevation=0):
-        ep.ENaddnode(uid, ep.EN_RESERVOIR)
-        index = ep.ENgetnodeindex(uid)
-        ep.ENsetcoord(index, x, y)
-        node = Reservoir(uid)
+        self.ep.ENaddnode(uid, epanet2.EN_RESERVOIR)
+        index = self.ep.ENgetnodeindex(uid)
+        self.ep.ENsetcoord(index, x, y)
+        node = Reservoir(uid, self)
         node.elevation = elevation
         self.reservoirs[uid] = node
         self.nodes[uid] = node
 
+        self.invalidate_nodes()
+
         return node
 
     def add_junction(self, uid, x, y, basedemand=0, elevation=0):
-        ep.ENaddnode(uid, ep.EN_JUNCTION)
-        index = ep.ENgetnodeindex(uid)
-        ep.ENsetcoord(index, x, y)
-        node = Junction(uid)
+        self.ep.ENaddnode(uid, epanet2.EN_JUNCTION)
+        index = self.ep.ENgetnodeindex(uid)
+        self.ep.ENsetcoord(index, x, y)
+        node = Junction(uid, self)
         self.junctions[uid] = node
         self.nodes[uid] = node
 
@@ -163,13 +168,15 @@ class Network(object):
         node.basedemand = basedemand
         node.elevation = elevation
 
+        self.invalidate_nodes()
+
         return node
 
     def add_tank(self, uid, x, y, diameter=0, maxlevel=0, minlevel=0, tanklevel=0):
-        ep.ENaddnode(uid, ep.EN_TANK)
-        index = ep.ENgetnodeindex(uid)
-        ep.ENsetcoord(index, x, y)
-        node = Tank(uid)
+        self.ep.ENaddnode(uid, epanet2.EN_TANK)
+        index = self.ep.ENgetnodeindex(uid)
+        self.ep.ENsetcoord(index, x, y)
+        node = Tank(uid, self)
         self.tanks[uid] = node
         self.nodes[uid] = node
         # config tank
@@ -177,6 +184,9 @@ class Network(object):
         node.maxlevel = maxlevel
         node.minlevel = minlevel
         node.tanklevel = tanklevel
+
+        self.invalidate_nodes()
+
         return node
 
 
@@ -186,12 +196,12 @@ class Network(object):
         to_node = to_node if isinstance(to_node,str) else to_node.uid
 
         if check_valve:
-            ep.ENaddlink(uid, ep.EN_CVPIPE, from_node, to_node)
+            self.ep.ENaddlink(uid, epanet2.EN_CVPIPE, from_node, to_node)
         else:
-            ep.ENaddlink(uid, ep.EN_PIPE, from_node, to_node)
+            self.ep.ENaddlink(uid, epanet2.EN_PIPE, from_node, to_node)
 
-        index = ep.ENgetlinkindex(uid)
-        link = Pipe(uid)
+        index = self.ep.ENgetlinkindex(uid)
+        link = Pipe(uid, self)
 
         link.diameter = diameter
         link.length = length
@@ -208,6 +218,8 @@ class Network(object):
         link.diameter = diameter
         link.length = length
 
+        self.invalidate_links()
+
         return link
 
     def add_pump(self, uid, from_node, to_node, speed=0):
@@ -215,9 +227,9 @@ class Network(object):
         from_node = from_node if isinstance(from_node,str) else from_node.uid
         to_node = to_node if isinstance(to_node,str) else to_node.uid
 
-        ep.ENaddlink(uid, ep.EN_PUMP, from_node, to_node)
-        index = ep.ENgetlinkindex(uid)
-        link = Pump(uid)
+        self.ep.ENaddlink(uid, epanet2.EN_PUMP, from_node, to_node)
+        index = self.ep.ENgetlinkindex(uid)
+        link = Pump(uid, self)
         link.speed = speed
         link.from_node = self.nodes[from_node]
         link.speed = speed
@@ -227,20 +239,22 @@ class Network(object):
         self.pumps[uid] = link
         self.links[uid] = link
 
+        self.invalidate_links()
+
         return link
 
     def add_curve(self, uid, values):
-        ep.ENaddcurve(uid)
+        self.ep.ENaddcurve(uid)
 
-        curve = Curve(uid)
+        curve = Curve(uid, self)
         curve.values = values
         self.curves[uid] = curve
 
         return curve
 
     def add_pattern(self, uid, values):
-        ep.ENaddpattern(uid)
-        pattern = Pattern(uid)
+        self.ep.ENaddpattern(uid)
+        pattern = Pattern(uid, self)
         pattern.values = values
         self.patterns[uid] = pattern
 
@@ -252,21 +266,21 @@ class Network(object):
         to_node = to_node if isinstance(to_node,str) else to_node.uid
 
         if valve_type.lower() == "gpv":
-            valve_type_code = ep.EN_GPV
+            valve_type_code = epanet2.EN_GPV
         elif valve_type.lower() == "fcv":
-            valve_type_code = ep.EN_FCV
+            valve_type_code = epanet2.EN_FCV
         elif valve_type.lower() == "pbv":
-            valve_type_code = ep.EN_PBV
+            valve_type_code = epanet2.EN_PBV
         elif valve_type.lower() == "tcv":
-            valve_type_code = ep.EN_TCV
+            valve_type_code = epanet2.EN_TCV
         elif valve_type == "prv":
-            valve_type_code = ep.EN_PRV
+            valve_type_code = epanet2.EN_PRV
         else:
             raise InputError("Unknown Valve Type")
 
-        ep.ENaddlink(uid, valve_type_code, from_node, to_node)
-        index = ep.ENgetlinkindex(uid)
-        link = Valve(uid)
+        self.ep.ENaddlink(uid, valve_type_code, from_node, to_node)
+        index = self.ep.ENgetlinkindex(uid)
+        link = Valve(uid, self)
         link.diameter = diameter
         link.setting = setting
         link.from_node = self.nodes[from_node]
@@ -276,46 +290,55 @@ class Network(object):
         self.valves[uid] = link
         self.links[uid] = link
 
+        self.invalidate_links()
+
         return link
 
-    def get_warnings(self):
-        """ Get EPANET2 GUI style warning messages """
-        warnings = []
-        if not self.solved:
-            raise ValueError('This function only works for single-step solved networks')
+    def invalidate_links(self):
+        # set network as unsolved
+        self.solved = False
+        # reset link index caches
+        for link in self.links:
+            link._index = None
 
-        # check fcv
-        for valve in self.valves:
-            if valve.valve_type == 'FCV' and valve.flow < valve.setting:
-                warnings.append("FCV "+valve.uid+" unable to deliver flow")
-
-        return warnings
+    def invalidate_nodes(self):
+        # set network as unsolved
+        self.solved = False
+        # reset node index caches
+        for node in self.nodes:
+            node._index = None
 
     def solve(self, simtime=0):
         """ Solve Hydraulic Network for Single Timestep"""
+        if self.solved and self.solved_for_simtime == simtime:
+            return
+
         self.reset()
-        ep.ENsettimeparam(4,simtime)
-        ep.ENopenH()
-        ep.ENinitH(0)
-        ep.ENrunH()
-        ep.ENcloseH()
+        self.ep.ENsettimeparam(4,simtime)
+        self.ep.ENopenH()
+        self.ep.ENinitH(0)
+        self.ep.ENrunH()
+        self.ep.ENcloseH()
         self.solved = True
+        self.solved_for_simtime = simtime
 
     def run(self):
         self.reset()
         self.time = []
         # open network
-        ep.ENopenH()
-        ep.ENinitH(0)
+        self.ep.ENopenH()
+        self.ep.ENinitH(0)
 
         simtime = 0
         timestep = 1
         while timestep > 0:
-            ep.ENrunH()
-            timestep = ep.ENnextH()
+            self.ep.ENrunH()
+            timestep = self.ep.ENnextH()
             self.time.append(simtime)
             self.load_attributes(simtime)
             simtime += timestep
+
+        self.solved = True
 
     def load_attributes(self, simtime):
         for node in self.nodes:
@@ -333,5 +356,5 @@ class Network(object):
             link.times.append(simtime)
 
     def save_inputfile(self, name):
-        ep.ENsaveinpfile(name)
+        self.ep.ENsaveinpfile(name)
 
