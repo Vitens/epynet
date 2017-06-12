@@ -639,7 +639,7 @@ class EPANET2(object):
         if ierr>=100: 
           raise ENtoolkitError(self, ierr)
         elif ierr>0:
-          return ENgeterror(ierr)
+          return self.ENgeterror(ierr)
 
 
     def ENsimtime(self):
