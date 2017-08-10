@@ -641,6 +641,7 @@ class EPANET2(object):
           raise ENtoolkitError(self, ierr)
         elif ierr>0:
           warnings.warn(self.ENgeterror(ierr))
+          return self.ENgeterror(ierr)
 
     def ENabort(self):
         self._lib.ENabort()
