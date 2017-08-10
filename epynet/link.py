@@ -2,8 +2,6 @@
 from . import epanet2
 from .baseobject import BaseObject, lazy_property
 from .curve import Curve
-import pudb
-
 
 class Link(BaseObject):
     """ EPANET Link Class """
