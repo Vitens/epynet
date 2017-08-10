@@ -53,7 +53,7 @@ class Pipe(Link):
 
     static_properties = {'diameter': epanet2.EN_DIAMETER, 'length': epanet2.EN_LENGTH,
                          'roughness': epanet2.EN_ROUGHNESS, 'minorloss': epanet2.EN_MINORLOSS,
-                         'status': epanet2.EN_INITSTATUS}
+                         'initstatus': epanet2.EN_INITSTATUS, 'status': epanet2.EN_STATUS}
     properties = {'flow': epanet2.EN_FLOW, 'headloss': epanet2.EN_HEADLOSS, 'velocity': epanet2.EN_VELOCITY}
 
 
