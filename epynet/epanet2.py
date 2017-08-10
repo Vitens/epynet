@@ -6,6 +6,7 @@ import ctypes
 import platform
 import datetime
 import os
+import warnings
 
 class EPANET2(object):
 
@@ -13,7 +14,7 @@ class EPANET2(object):
         _plat= platform.system()
         if _plat=='Darwin':
             dll_path = os.path.join(os.path.dirname(__file__), "lib/libepanet.dylib")
-            self._lib = ctypes.CDLL(dll_path)
+            self._lib = ctypes.cdll.LoadLibrary(dll_path)
             ctypes.c_float = ctypes.c_double
         elif _plat=='Linux':
             dll_path = os.path.join(os.path.dirname(__file__), "lib/libepanet.so")
@@ -639,8 +640,10 @@ class EPANET2(object):
         if ierr>=100: 
           raise ENtoolkitError(self, ierr)
         elif ierr>0:
-          return ENgeterror(ierr)
+          warnings.warn(self.ENgeterror(ierr))
 
+    def ENabort(self):
+        self._lib.ENabort()
 
     def ENsimtime(self):
         """retrieves the current simulation time t as datetime.timedelta instance"""
@@ -691,7 +694,7 @@ class EPANET2(object):
         if ierr>=100: 
           raise ENtoolkitError(self, ierr)
         elif ierr>0:
-          return ENgeterror(ierr)
+          return self.ENgeterror(ierr)
 
     def ENnextQ(self):
         """Advances the water quality simulation 

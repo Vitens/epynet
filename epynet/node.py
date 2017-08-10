@@ -41,7 +41,7 @@ class Node(BaseObject):
 
         links = ObjectCollection()
         for link in self.links:
-            if (link.to_node == self and link.flow >= 0) or (link.from_node == self and link.flow < 0):
+            if (link.to_node == self and link.flow >= 1e-3) or (link.from_node == self and link.flow < -1e-3):
                 links[link.uid] = link
         return links
 
