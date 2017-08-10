@@ -232,7 +232,6 @@ class EPANET2(object):
                      EN_SETTING      * Roughness for pipes, actual speed for pumps, actual setting for valves
                      EN_ENERGY       * Energy expended in kwatts
                        * computed values"""
-        #pudb.set_trace()
         j= ctypes.c_float()
         ierr= self._lib.ENgetlinkvalue(index, paramcode, ctypes.byref(j))
         if ierr!=0: raise ENtoolkitError(self, ierr)
