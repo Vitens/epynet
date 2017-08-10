@@ -2,6 +2,7 @@
 from . import epanet2
 from .baseobject import BaseObject, lazy_property
 from .curve import Curve
+import pudb
 
 
 class Link(BaseObject):
@@ -100,5 +101,9 @@ class Valve(Link):
 
     @lazy_property
     def valve_type(self):
-        type_code = self.network().ep.ENgetlinktype(self.index)
+        try:
+            type_code = self.network().ep.ENgetlinktype(self.index)
+        except Exception as e:
+            print(e)
+            raise e
         return self.types[type_code]
