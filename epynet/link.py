@@ -72,7 +72,7 @@ class Pump(Link):
     def curve(self):
         curve_index = self.network().ep.ENgetheadcurveindex(self.index)
         curve_uid = self.network().ep.ENgetcurveid(curve_index)
-        return Curve(curve_uid)
+        return Curve(curve_uid, self.network())
 
     @curve.setter
     def curve(self, value):

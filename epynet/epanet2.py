@@ -490,7 +490,7 @@ class EPANET2(object):
 
     def ENgetheadcurveindex(self, pump_index):
         j= ctypes.c_int()
-        ierr = self._lib.ENsetheadcurveindex(ctypes.c_int(pump_index), ctypes.byref(j))
+        ierr = self._lib.ENgetheadcurveindex(ctypes.c_int(pump_index), ctypes.byref(j))
         if ierr!=0: raise ENtoolkitError(self, ierr)
         return j.value
 
