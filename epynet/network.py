@@ -6,6 +6,8 @@ from .link import Pipe, Valve, Pump
 from .curve import Curve
 from .pattern import Pattern
 
+import itertools
+
 
 class Network(object):
     """ self.epANET Network Simulation Class """
@@ -335,6 +337,45 @@ class Network(object):
             self.time.append(simtime)
             self.load_attributes(simtime)
             simtime += timestep
+
+    def run_interactive(self, **kwargs):
+        self.reset()
+        
+        # simulation settings
+        if 'duration' in kwargs:
+            self.ep.ENsettimeparam(epanet2.EN_DURATION, kwargs['duration'])
+        if 'hydraulic_step' in kwargs:
+            self.ep.ENsettimeparam(epanet2.EN_HYDSTEP, kwargs['hydraulic_step'])
+        if 'report_step' in kwargs:
+            self.ep.ENsettimeparam(epanet2.EN_REPORTSTEP, kwargs['report_step'])
+        if 'pattern_start' in kwargs:
+            self.ep.ENsettimeparam(epanet2.EN_PATTERNSTART, kwargs['pattern_start'])
+        if 'pattern_step' in kwargs:
+            self.ep.ENsettimeparam(epanet2.EN_PATTERNSTEP, kwargs['pattern_step'])
+
+        # open network
+        self.ep.ENopenH()
+        self.ep.ENinitH(0)
+
+        simtime = 0
+
+        self.solved = True
+
+        while timestep > 0:
+            self.ep.ENrunH()
+            timestep = self.ep.ENnextH()
+
+            for el in itertools.chain(self.nodes, self.links):
+                # clear cached values
+                el._values = {}
+
+            simtime += timestep
+
+            # pass control to caller, to log results or compute
+            # custom feedback control laws.
+            yield simtime
+
+        self.ep.ENcloseH()
 
     def load_attributes(self, simtime):
         for node in self.nodes:
