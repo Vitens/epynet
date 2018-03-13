@@ -19,6 +19,7 @@ class Network(object):
             self.binfile = self.inputfile[:-3]+"bin"
             self.ep.ENopen(self.inputfile, self.rptfile, self.binfile)
         else:
+            self.inputfile = False
             self.rptfile = "net.rpt"
             self.binfile = "net.bin"
             self.ep.ENinit(self.rptfile.encode(), self.binfile.encode(), units, headloss)
@@ -366,6 +367,9 @@ class Network(object):
 
     def parse_vertices(self):
         vertices = False
+        if not self.inputfile or len(self.vertices) > 0:
+            return
+
         with open(self.inputfile, 'r') as handle:
             for line in handle.readlines():
                 if '[VERTICES]' in line:
