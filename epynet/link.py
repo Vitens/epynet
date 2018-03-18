@@ -46,6 +46,13 @@ class Link(BaseObject):
         else:
             return self.from_node
 
+    @lazy_property
+    def vertices(self):
+        return self.network().get_vertices(self.uid)
+
+    @lazy_property
+    def path(self):
+        return [self.from_node.coordinates] + self.vertices + [self.to_node.coordinates]
 
 class Pipe(Link):
     """ EPANET Pipe Class """
