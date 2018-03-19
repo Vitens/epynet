@@ -370,19 +370,19 @@ class Network(object):
         if not self.inputfile or len(self.vertices) > 0:
             return
 
-        with open(self.inputfile, 'r') as handle:
+        with open(self.inputfile, 'rb') as handle:
             for line in handle.readlines():
-                if '[VERTICES]' in line:
+                if b'[VERTICES]' in line:
                     vertices = True
                     continue
-                elif '[' in line:
+                elif b'[' in line:
                     vertices = False
 
-                if "\t" not in line or ";" in line:
+                if b"\t" not in line or b";" in line:
                     continue
 
                 if vertices:
-                    components = [c.strip() for c in line.split("\t")]
+                    components = [c.strip() for c in line.decode('utf-8').split("\t")]
                     if components[0] not in self.vertices:
                         self.vertices[components[0]] = []
                     self.vertices[components[0]].append((float(components[1]), float(components[2])))
