@@ -319,27 +319,9 @@ class Network(object):
         self.solved = True
         self.solved_for_simtime = simtime
 
-    def run(self):
+    def _run(self, **kwargs):
         self.reset()
         self.time = []
-        # open network
-        self.ep.ENopenH()
-        self.ep.ENinitH(0)
-
-        simtime = 0
-        timestep = 1
-
-        self.solved = True
-
-        while timestep > 0:
-            self.ep.ENrunH()
-            timestep = self.ep.ENnextH()
-            self.time.append(simtime)
-            self.load_attributes(simtime)
-            simtime += timestep
-
-    def run_interactive(self, **kwargs):
-        self.reset()
         
         # simulation settings
         if 'duration' in kwargs:
@@ -358,8 +340,11 @@ class Network(object):
         self.ep.ENinitH(0)
 
         simtime = 0
+        timestep = 1
 
         self.solved = True
+
+        store_results = kwargs.get('store_results', True)
 
         while timestep > 0:
             self.ep.ENrunH()
@@ -369,21 +354,29 @@ class Network(object):
                 # clear cached values
                 el._values = {}
 
-            simtime += timestep
+            if store_results:
+                self.time.append(simtime)
+                self.load_attributes(simtime)
 
             # pass control to caller, to log results or compute
             # custom feedback control laws.
             yield simtime
 
+            simtime += timestep
+
         self.ep.ENcloseH()
+
+    def run(self, **kwargs):
+        if kwargs.get('interactive', False):
+            return self._run(**kwargs)
+        else:
+            simtimes = list(self._run(**kwargs))
 
     def load_attributes(self, simtime):
         for node in self.nodes:
             for property_name in node.properties.keys():
                 if property_name not in node.results.keys():
                     node.results[property_name] = []
-                # clear cached values
-                node._values = {}
                 node.results[property_name].append(node.get_property(node.properties[property_name]))
             node.times.append(simtime)
 
@@ -391,8 +384,6 @@ class Network(object):
             for property_name in link.properties.keys():
                 if property_name not in link.results.keys():
                     link.results[property_name] = []
-                # clear cached values
-                link._values = {}
                 link.results[property_name].append(link.get_property(link.properties[property_name]))
             link.times.append(simtime)
 
