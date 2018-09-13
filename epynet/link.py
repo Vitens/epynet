@@ -69,7 +69,7 @@ class Pump(Link):
     link_type = 'pump'
 
     static_properties = {'length': epanet2.EN_LENGTH, 'speed': epanet2.EN_INITSETTING}
-    properties = {'flow': epanet2.EN_FLOW}
+    properties = {'flow': epanet2.EN_FLOW, 'energy': epanet2.EN_ENERGY}
 
     @property
     def velocity(self):
