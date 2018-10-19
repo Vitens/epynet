@@ -45,6 +45,13 @@ class Link(BaseObject):
         else:
             return self.from_node
 
+    @lazy_property
+    def vertices(self):
+        return self.network().get_vertices(self.uid)
+
+    @lazy_property
+    def path(self):
+        return [self.from_node.coordinates] + self.vertices + [self.to_node.coordinates]
 
 class Pipe(Link):
     """ EPANET Pipe Class """
@@ -61,7 +68,7 @@ class Pump(Link):
     link_type = 'pump'
 
     static_properties = {'length': epanet2.EN_LENGTH, 'speed': epanet2.EN_INITSETTING}
-    properties = {'flow': epanet2.EN_FLOW}
+    properties = {'flow': epanet2.EN_FLOW, 'energy': epanet2.EN_ENERGY}
 
     @property
     def velocity(self):
@@ -71,7 +78,7 @@ class Pump(Link):
     def curve(self):
         curve_index = self.network().ep.ENgetheadcurveindex(self.index)
         curve_uid = self.network().ep.ENgetcurveid(curve_index)
-        return Curve(curve_uid)
+        return Curve(curve_uid, self.network())
 
     @curve.setter
     def curve(self, value):

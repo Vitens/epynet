@@ -2,6 +2,7 @@
 from . import epanet2
 from .objectcollection import ObjectCollection
 from .baseobject import BaseObject, lazy_property
+from .pattern import Pattern
 
 class Node(BaseObject):
     """ Base EPANET Node class """
@@ -53,7 +54,7 @@ class Node(BaseObject):
 
         links = ObjectCollection()
         for link in self.links:
-            if (link.from_node == self and link.flow >= 1e-3) or (link.to_node == self and link.flow < -1e-3):
+            if (link.from_node == self and link.flow >= 1e-3) or (link.to_node == self and link.flow < 1e-3):
                 links[link.uid] = link
         return links
 

@@ -251,7 +251,7 @@ class EPANET2(object):
         label = ctypes.create_string_buffer(self._max_label_len)
         ierr= self._lib.EN_getpatternid(self.ph, index, ctypes.byref(label))
         if ierr!=0: raise ENtoolkitError(self, ierr)
-        return label.value
+        return label.value.decode()
 
     def ENgetpatternindex(self, patternid):
         """Retrieves the index of a particular time pattern.
@@ -494,7 +494,7 @@ class EPANET2(object):
 
     def ENgetheadcurveindex(self, pump_index):
         j= ctypes.c_int()
-        ierr = self._lib.EN_setheadcurveindex(self.ph, ctypes.c_int(pump_index), ctypes.byref(j))
+        ierr = self._lib.EN_getheadcurveindex(self.ph, ctypes.c_int(pump_index), ctypes.byref(j))
         if ierr!=0: raise ENtoolkitError(self, ierr)
         return j.value
 

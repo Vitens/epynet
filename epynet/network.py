@@ -20,10 +20,12 @@ class Network(object):
             self.binfile = self.inputfile[:-3]+"bin"
             self.ep.ENopen(self.inputfile, self.rptfile, self.binfile)
         else:
+            self.inputfile = False
             self.rptfile = "net.rpt"
             self.binfile = "net.bin"
             self.ep.ENinit(self.rptfile.encode(), self.binfile.encode(), units, headloss)
 
+        self.vertices = {}
         # prepare network data
         self.nodes = ObjectCollection()
         self.junctions = ObjectCollection()
@@ -358,3 +360,33 @@ class Network(object):
 
     def save_inputfile(self, name):
         self.ep.ENsaveinpfile(name)
+
+    def get_vertices(self, link_uid):
+        if self.vertices == {}:
+            self.parse_vertices()
+        return self.vertices.get(link_uid, [])
+
+    def parse_vertices(self):
+        vertices = False
+        if not self.inputfile or len(self.vertices) > 0:
+            return
+
+        with open(self.inputfile, 'rb') as handle:
+            for line in handle.readlines():
+                if b'[VERTICES]' in line:
+                    vertices = True
+                    continue
+                elif b'[' in line:
+                    vertices = False
+
+                if b"\t" not in line or b";" in line:
+                    continue
+
+                if vertices:
+                    components = [c.strip() for c in line.decode('utf-8').split("\t")]
+                    if components[0] not in self.vertices:
+                        self.vertices[components[0]] = []
+                    self.vertices[components[0]].append((float(components[1]), float(components[2])))
+
+
+
