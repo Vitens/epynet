@@ -120,7 +120,7 @@ class TestNetwork(object):
 
     def test08_tank(self):
         tank = self.network.tanks["11"]
-        assert_equal(tank.diameter,50)
+        assert_equal(round(tank.diameter,2),50)
         assert_equal(round(tank.initvolume,2),19634.95)
         assert_equal(tank.minvolume,0)
         assert_equal(tank.minlevel,0)
@@ -137,7 +137,7 @@ class TestNetwork(object):
 
     def test10_collections(self):
         # collection attributes as pandas Series
-        assert_almost_equal(self.network.pipes.flow.mean(),46.77,2)
+        assert_almost_equal(self.network.pipes.flow.mean(),46.78,2)
         assert_almost_equal(self.network.pipes.diameter.max(),150,2)
         assert_almost_equal(self.network.pipes.velocity.min(),0.105,2)
 

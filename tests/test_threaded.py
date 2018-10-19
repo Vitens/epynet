@@ -6,6 +6,7 @@ class TestGeneratedNetwork(object):
 
     @classmethod
     def setup_class(self):
+        threaded = Network('tests/testnetwork.inp')
         self.network = Network()
 
     @classmethod

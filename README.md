@@ -14,6 +14,7 @@ EPYNET is an object oriented wrapper around the EPANET 2.1 community edition hyd
 - [x] Support for time series
 - [x] Pattern and Curve creation and manipulation
 - [x] Create and remove nodes and links
+- [x] Work on multiple networks at the same time
 - [ ] [TODO] Chemical calculations
 
 ## Example Usage

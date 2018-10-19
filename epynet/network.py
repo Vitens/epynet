@@ -11,6 +11,7 @@ class Network(object):
     """ self.epANET Network Simulation Class """
     def __init__(self, inputfile=None, units=epanet2.EN_CMH, headloss=epanet2.EN_DW):
 
+        # create multithreaded EPANET instance
         self.ep = epanet2.EPANET2()
 
         if inputfile:
