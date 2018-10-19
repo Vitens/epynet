@@ -1,6 +1,5 @@
 """ EPYNET Classes """
 from . import epanet2
-from .epanet2_mulithread import MTEPANET2
 from .objectcollection import ObjectCollection
 from .node import Junction, Tank, Reservoir
 from .link import Pipe, Valve, Pump
@@ -13,7 +12,7 @@ class Network(object):
     def __init__(self, inputfile=None, units=epanet2.EN_CMH, headloss=epanet2.EN_DW):
 
         # create multithreaded EPANET instance
-        self.ep = MTEPANET2()
+        self.ep = epanet2.EPANET2()
 
         if inputfile:
             self.inputfile = inputfile

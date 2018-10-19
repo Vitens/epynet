@@ -192,7 +192,7 @@ class TestGeneratedNetwork(object):
 
     def test10_collections(self):
         # collection attributes as pandas Series
-        assert_almost_equal(self.network.pipes.flow.mean(),46.77,2)
+        assert_almost_equal(self.network.pipes.flow.mean(),46.78,2)
         assert_almost_equal(self.network.pipes.diameter.max(),150,2)
         assert_almost_equal(self.network.pipes.velocity.min(),0.105,2)
 
