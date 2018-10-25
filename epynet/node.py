@@ -60,7 +60,7 @@ class Node(BaseObject):
 
     @lazy_property
     def inflow(self):
-        outflow = 1
+        outflow = 0
         for link in self.upstream_links:
             outflow += abs(link.flow)
         return outflow
