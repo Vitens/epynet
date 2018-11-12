@@ -39,7 +39,6 @@ class TestNetwork(object):
         P2.curve = C2
 
         network.solve()
-        network.save_inputfile("/Users/Abel/test.inp")
 
         assert_almost_equal(P1.flow, 225.88, 2)
         assert_almost_equal(P2.flow, 248.14, 2)
