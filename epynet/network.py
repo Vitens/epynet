@@ -272,8 +272,10 @@ class Network(object):
             valve_type_code = epanet2.EN_PBV
         elif valve_type.lower() == "tcv":
             valve_type_code = epanet2.EN_TCV
-        elif valve_type == "prv":
+        elif valve_type.lower() == "prv":
             valve_type_code = epanet2.EN_PRV
+        elif valve_type.lower() == "psv":
+            valve_type_code = epanet2.EN_PSV
         else:
             raise ValueError("Unknown Valve Type")
 
