@@ -62,6 +62,11 @@ class Pipe(Link):
                          'initstatus': epanet2.EN_INITSTATUS, 'status': epanet2.EN_STATUS}
     properties = {'flow': epanet2.EN_FLOW, 'headloss': epanet2.EN_HEADLOSS, 'velocity': epanet2.EN_VELOCITY}
 
+    @lazy_property
+    def check_valve(self):
+        type_code = self.network().ep.ENgetlinktype(self.index)
+        return (type_code == epanet2.EN_CVPIPE)
+
 
 class Pump(Link):
     """ EPANET Pump Class """
