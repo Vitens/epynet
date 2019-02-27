@@ -11,7 +11,7 @@ import warnings
 
 class EPANET2(object):
 
-    def __init__(self):
+    def __init__(self, charset='UTF8'):
         _plat= platform.system()
         if _plat=='Darwin':
             dll_path = os.path.join(os.path.dirname(__file__), "lib/libepanet.dylib")
@@ -37,6 +37,7 @@ class EPANET2(object):
           raise Exception('Platform '+ _plat +' unsupported (not yet)')
 
 
+        self.charset = charset
         self._current_simulation_time=  ctypes.c_long()
 
         self.ph = ctypes.c_void_p()
@@ -93,7 +94,7 @@ class EPANET2(object):
         Arguments:
         nodeid: node ID label"""
         j= ctypes.c_int()
-        ierr= self._lib.EN_getnodeindex(self.ph, ctypes.c_char_p(nodeid.encode()), ctypes.byref(j))
+        ierr= self._lib.EN_getnodeindex(self.ph, ctypes.c_char_p(nodeid.encode(self.charset)), ctypes.byref(j))
         if ierr!=0: raise ENtoolkitError(self, ierr)
         return j.value
 
@@ -106,7 +107,7 @@ class EPANET2(object):
         label = ctypes.create_string_buffer(self._max_label_len)
         ierr= self._lib.EN_getnodeid(self.ph, index, ctypes.byref(label))
         if ierr!=0: raise ENtoolkitError(self, ierr)
-        return label.value.decode()
+        return label.value.decode(self.charset)
 
 
     def ENgetnodetype(self, index):
@@ -178,7 +179,7 @@ class EPANET2(object):
         Arguments:
         linkid: link ID label"""
         j= ctypes.c_int()
-        ierr= self._lib.EN_getlinkindex(self.ph, ctypes.c_char_p(linkid.encode()), ctypes.byref(j))
+        ierr= self._lib.EN_getlinkindex(self.ph, ctypes.c_char_p(linkid.encode(self.charset)), ctypes.byref(j))
         if ierr!=0: raise ENtoolkitError(self, ierr)
         return j.value
 
@@ -191,7 +192,7 @@ class EPANET2(object):
         label = ctypes.create_string_buffer(self._max_label_len)
         ierr= self._lib.EN_getlinkid(self.ph, index, ctypes.byref(label))
         if ierr!=0: raise ENtoolkitError(self, ierr)
-        return label.value.decode()
+        return label.value.decode(self.charset)
 
 
     def ENgetlinktype(self, index):
@@ -251,7 +252,7 @@ class EPANET2(object):
         label = ctypes.create_string_buffer(self._max_label_len)
         ierr= self._lib.EN_getpatternid(self.ph, index, ctypes.byref(label))
         if ierr!=0: raise ENtoolkitError(self, ierr)
-        return label.value.decode()
+        return label.value.decode(self.charset)
 
     def ENgetpatternindex(self, patternid):
         """Retrieves the index of a particular time pattern.
@@ -259,7 +260,7 @@ class EPANET2(object):
         Arguments:
         id: pattern ID label"""
         j= ctypes.c_int()
-        ierr= self._lib.EN_getpatternindex(self.ph, ctypes.c_char_p(patternid.encode()), ctypes.byref(j))
+        ierr= self._lib.EN_getpatternindex(self.ph, ctypes.c_char_p(patternid.encode(self.charset)), ctypes.byref(j))
         if ierr!=0: raise ENtoolkitError(self, ierr)
         return j.value
 
@@ -473,7 +474,7 @@ class EPANET2(object):
         if ierr!=0: raise ENtoolkitError(self, ierr)
 
     def ENaddnode(self, node_id, node_type_code):
-        ierr= self._lib.EN_addnode(self.ph, ctypes.c_char_p(node_id.encode()), ctypes.c_int(node_type_code))
+        ierr= self._lib.EN_addnode(self.ph, ctypes.c_char_p(node_id.encode(self.charset)), ctypes.c_int(node_type_code))
         if ierr!=0: raise ENtoolkitError(self, ierr)
 
     def ENdeletenode(self, node_index):
@@ -485,7 +486,7 @@ class EPANET2(object):
         if ierr!=0: raise ENtoolkitError(self, ierr)
 
     def ENaddlink(self, link_id, link_type_code, from_node_id, to_node_id):
-        ierr= self._lib.EN_addlink(self.ph, ctypes.c_char_p(link_id.encode()), ctypes.c_int(link_type_code), ctypes.c_char_p(from_node_id.encode()), ctypes.c_char_p(to_node_id.encode()))
+        ierr= self._lib.EN_addlink(self.ph, ctypes.c_char_p(link_id.encode(self.charset)), ctypes.c_int(link_type_code), ctypes.c_char_p(from_node_id.encode(self.charset)), ctypes.c_char_p(to_node_id.encode(self.charset)))
         if ierr!=0: raise ENtoolkitError(self, ierr)
 
     def ENsetheadcurveindex(self, pump_index, curve_index):
@@ -499,7 +500,7 @@ class EPANET2(object):
         return j.value
 
     def ENaddcurve(self, curve_id):
-        ierr = self._lib.EN_addcurve(self.ph, ctypes.c_char_p(curve_id.encode()))
+        ierr = self._lib.EN_addcurve(self.ph, ctypes.c_char_p(curve_id.encode(self.charset)))
         if ierr!=0: raise ENtoolkitError(self, ierr)
 
     def ENsetcurvevalue(self, curve_index,point_index, x ,y):
@@ -516,7 +517,7 @@ class EPANET2(object):
         """Adds a new time pattern to the network.
         Arguments:
           id: ID label of pattern"""
-        ierr= self._lib.EN_addpattern(self.ph, ctypes.c_char_p(patternid.encode()))
+        ierr= self._lib.EN_addpattern(self.ph, ctypes.c_char_p(patternid.encode(self.charset)))
         if ierr!=0: raise ENtoolkitError(self, ierr)
 
 
@@ -557,9 +558,9 @@ class EPANET2(object):
              chemunits:	units that the chemical is measured in
              tracenode:	ID of node traced in a source tracing analysis """
         ierr= self._lib.EN_setqualtype(self.ph,  ctypes.c_int(qualcode),
-                                  ctypes.c_char_p(chemname.encode()),
-                                  ctypes.c_char_p(chemunits.encode()),
-                                  ctypes.c_char_p(tracenode.encode()))
+                                  ctypes.c_char_p(chemname.encode(self.charset)),
+                                  ctypes.c_char_p(chemunits.encode(self.charset)),
+                                  ctypes.c_char_p(tracenode.encode(self.charset)))
         if ierr!=0: raise ENtoolkitError(self, ierr)
 
 
@@ -765,7 +766,7 @@ class EPANET2(object):
         
         Formatting commands are the same as used in the 
         [REPORT] section of the EPANET Input file."""
-        ierr= self._lib.EN_setreport(self.ph, ctypes.c_char_p(command.encode()))
+        ierr= self._lib.EN_setreport(self.ph, ctypes.c_char_p(command.encode(self.charset)))
         if ierr!=0: raise ENtoolkitError(self, ierr)
 
     def ENsetstatusreport(self, statuslevel):
@@ -782,11 +783,11 @@ class EPANET2(object):
         """Retrieves the text of the message associated with a particular error or warning code."""
         errmsg= ctypes.create_string_buffer(self._err_max_char)
         self._lib.ENgeterror(errcode,ctypes.byref(errmsg), self._err_max_char )
-        return errmsg.value.decode()
+        return errmsg.value.decode(self.charset)
 
     def ENwriteline(self, line ):
         """Writes a line of text to the EPANET report file."""
-        ierr= self._lib.EN_writeline(self.ph, ctypes.c_char_p(line.encode() ))
+        ierr= self._lib.EN_writeline(self.ph, ctypes.c_char_p(line.encode(self.charset) ))
         if ierr!=0: raise ENtoolkitError(self, ierr)
 
           
@@ -837,11 +838,11 @@ class EPANET2(object):
         # strange behavior of ENgetcurve: it returns also curveID
         # better split in two distinct functions ....
         if ierr!=0: raise ENtoolkitError(self, ierr)
-        return curveid.value.decode()
+        return curveid.value.decode(self.charset)
 
     def ENgetcurveindex(self, curveId):
         j= ctypes.c_int()
-        ierr= self._lib.EN_getcurveindex(self.ph, ctypes.c_char_p(curveId.encode()), ctypes.byref(j))
+        ierr= self._lib.EN_getcurveindex(self.ph, ctypes.c_char_p(curveId.encode(self.charset)), ctypes.byref(j))
         if ierr!=0: raise ENtoolkitError(self, ierr)
         return j.value
 
