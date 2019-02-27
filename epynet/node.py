@@ -85,9 +85,9 @@ class Junction(Node):
 
     @property
     def pattern(self):
-        pattern_index = self.get_property(epanet2.EN_PATTERN)
+        pattern_index = int(self.get_property(epanet2.EN_PATTERN))
         uid = self.network().ep.ENgetpatternid(pattern_index)
-        return Pattern(uid)
+        return Pattern(uid, self.network())
 
     @pattern.setter
     def pattern(self, value):
