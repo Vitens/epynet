@@ -72,7 +72,8 @@ class Pump(Link):
     """ EPANET Pump Class """
     link_type = 'pump'
 
-    static_properties = {'length': epanet2.EN_LENGTH, 'speed': epanet2.EN_INITSETTING}
+    static_properties = {'length': epanet2.EN_LENGTH, 'initstatus': epanet2.EN_INITSTATUS, 
+                         'speed': epanet2.EN_INITSETTING}
     properties = {'flow': epanet2.EN_FLOW, 'energy': epanet2.EN_ENERGY}
 
     @property
