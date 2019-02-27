@@ -394,6 +394,26 @@ class EPANET2(object):
 
 
     #---------Setting new values for network parameters-------------
+    def ENaddcontrol(self, ctype, lindex, setting, nindex, level ):
+        """Sets the parameters of a simple control statement.
+        Arguments:
+           ctype:   control type code  EN_LOWLEVEL   (Low Level Control)
+                                       EN_HILEVEL    (High Level Control)  
+                                       EN_TIMER      (Timer Control)       
+                                       EN_TIMEOFDAY  (Time-of-Day Control)
+           lindex:  index of link being controlled
+           setting: value of the control setting
+           nindex:  index of controlling node
+           level:   value of controlling water level or pressure for level controls
+                    or of time of control action (in seconds) for time-based controls"""
+        #int ENsetcontrol(int cindex, int* ctype, int* lindex, float* setting, int* nindex, float* level )
+        cindex = ctypes.c_int()
+        ierr= self._lib.EN_addcontrol(self.ph, ctypes.byref(cindex), ctypes.c_int(ctype),
+                                ctypes.c_int(lindex), ctypes.c_float(setting), 
+                                ctypes.c_int(nindex), ctypes.c_float(level))
+        if ierr!=0: raise ENtoolkitError(self, ierr)
+        return cindex
+
     def ENsetcontrol(self, cindex, ctype, lindex, setting, nindex, level ):
         """Sets the parameters of a simple control statement.
         Arguments:
