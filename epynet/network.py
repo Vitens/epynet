@@ -385,7 +385,7 @@ class Network(object):
                     continue
 
                 if vertices:
-                    components = [c.strip() for c in line.decode('utf-8').split()]
+                    components = [c.strip() for c in line.decode(self.ep.charset).split()]
                     if len(components) < 3:
                         continue
                     if components[0] not in self.vertices:
