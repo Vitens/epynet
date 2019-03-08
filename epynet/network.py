@@ -381,11 +381,13 @@ class Network(object):
                 elif b'[' in line:
                     vertices = False
 
-                if b"\t" not in line or b";" in line:
+                if b";" in line:
                     continue
 
                 if vertices:
-                    components = [c.strip() for c in line.decode('utf-8').split("\t")]
+                    components = [c.strip() for c in line.decode(self.ep.charset).split()]
+                    if len(components) < 3:
+                        continue
                     if components[0] not in self.vertices:
                         self.vertices[components[0]] = []
                     self.vertices[components[0]].append((float(components[1]), float(components[2])))
