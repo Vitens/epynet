@@ -26,6 +26,7 @@ class Network(object):
             self.ep.ENinit(self.rptfile.encode(), self.binfile.encode(), units, headloss)
 
         self.vertices = {}
+        self.new_vertices = {}
         # prepare network data
         self.nodes = ObjectCollection()
         self.junctions = ObjectCollection()
@@ -191,7 +192,7 @@ class Network(object):
 
         return node
 
-    def add_pipe(self, uid, from_node, to_node, diameter=100, length=10, roughness=0.1, check_valve=False):
+    def add_pipe(self, uid, from_node, to_node, diameter=100, length=10, roughness=0.1, check_valve=False, vertices=None):
 
         from_node = from_node if isinstance(from_node, str) else from_node.uid
         to_node = to_node if isinstance(to_node, str) else to_node.uid
@@ -219,6 +220,9 @@ class Network(object):
         link.length = length
 
         self.invalidate_links()
+
+        if vertices:
+            self.new_vertices[uid] = vertices
 
         return link
 
@@ -362,6 +366,36 @@ class Network(object):
 
     def save_inputfile(self, name):
         self.ep.ENsaveinpfile(name)
+
+        if len(self.new_vertices) == 0:
+            return
+
+        output = ""
+        vertices_written = False
+        with open(name, 'r') as f:
+            for line in f.readlines():
+
+                if '[END]' in line:
+                    output += "[VERTICES]" + "\n"
+                    output += self.write_vertices() + "\n"
+
+                output += line
+
+                if '[VERTICES]' in line:
+                    output += self.write_vertices()
+
+        with open(name, 'w') as f:
+            f.write(output)
+
+
+    def write_vertices(self):
+        output = ""
+
+        for uid, vertices in self.new_vertices.items():
+            for vertice in vertices:
+                output += "{} \t {} \t {} ; \n".format(uid, vertice[0], vertice[1])
+
+        return output
 
     def get_vertices(self, link_uid):
         if self.vertices == {}:

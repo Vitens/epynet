@@ -9,7 +9,7 @@ class TestNetwork(object):
         self.network.solve()
 
     @classmethod
-    def teadown(self):
+    def teardown(self):
         self.network.ep.ENclose()
 
     def test01_network(self):
