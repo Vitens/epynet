@@ -22,6 +22,7 @@ class EPANET2(object):
             self._lib = ctypes.CDLL(dll_path)
             ctypes.c_float = ctypes.c_double
         elif _plat=='Windows':
+          ctypes.c_float = ctypes.c_double
           try:
             # if epanet2.dll compiled with __cdecl (as in OpenWaterAnalytics)
             dll_path = os.path.join(os.path.dirname(__file__), "lib/epanet2.dll")
