@@ -82,9 +82,9 @@ class EPANET2(object):
           raise ENtoolkitError(self, ierr)
 
 
-    def ENclose(self):
+    def ENdeleteproject(self):
       """Closes down the Toolkit system (including all files being processed)"""
-      ierr= self._lib.EN_close(self.ph)
+      ierr= self._lib.EN_deleteproject(ctypes.byref(self.ph))
       if ierr!=0: raise ENtoolkitError(self, ierr)
 
 
@@ -494,8 +494,12 @@ class EPANET2(object):
         if ierr!=0: raise ENtoolkitError(self, ierr)
 
     def ENaddnode(self, node_id, node_type_code):
-        ierr= self._lib.EN_addnode(self.ph, ctypes.c_char_p(node_id.encode(self.charset)), ctypes.c_int(node_type_code))
+        index = ctypes.c_int()
+
+        ierr= self._lib.EN_addnode(self.ph, ctypes.c_char_p(node_id.encode(self.charset)), ctypes.c_int(node_type_code), ctypes.byref(index))
         if ierr!=0: raise ENtoolkitError(self, ierr)
+
+        return index
 
     def ENdeletenode(self, node_index):
         ierr= self._lib.EN_deletenode(self.ph, ctypes.c_int(node_index))
@@ -506,7 +510,10 @@ class EPANET2(object):
         if ierr!=0: raise ENtoolkitError(self, ierr)
 
     def ENaddlink(self, link_id, link_type_code, from_node_id, to_node_id):
-        ierr= self._lib.EN_addlink(self.ph, ctypes.c_char_p(link_id.encode(self.charset)), ctypes.c_int(link_type_code), ctypes.c_char_p(from_node_id.encode(self.charset)), ctypes.c_char_p(to_node_id.encode(self.charset)))
+
+        index = ctypes.c_int()
+
+        ierr= self._lib.EN_addlink(self.ph, ctypes.c_char_p(link_id.encode(self.charset)), ctypes.c_int(link_type_code), ctypes.c_char_p(from_node_id.encode(self.charset)), ctypes.c_char_p(to_node_id.encode(self.charset)), ctypes.byref(index))
         if ierr!=0: raise ENtoolkitError(self, ierr)
 
     def ENsetheadcurveindex(self, pump_index, curve_index):
@@ -815,13 +822,13 @@ class EPANET2(object):
     def ENgetcurve(self, curveIndex):
         curveid = ctypes.create_string_buffer(self._max_label_len)
         nValues = ctypes.c_int()
-        xValues= ctypes.POINTER(ctypes.c_float)()
-        yValues= ctypes.POINTER(ctypes.c_float)()
+        xValues= (ctypes.c_float*100)()
+        yValues= (ctypes.c_float*100)()
         ierr= self._lib.EN_getcurve(self.ph, curveIndex,
                               ctypes.byref(curveid),
                              ctypes.byref(nValues),
-                             ctypes.byref(xValues),
-                             ctypes.byref(yValues)
+                             xValues,
+                             yValues
                              )
         # strange behavior of ENgetcurve: it returns also curveID
         # better split in two distinct functions ....
@@ -847,14 +854,15 @@ class EPANET2(object):
     def ENgetcurveid(self, curveIndex):
         curveid = ctypes.create_string_buffer(self._max_label_len)
         nValues = ctypes.c_int()
-        xValues= ctypes.POINTER(ctypes.c_float)()
-        yValues= ctypes.POINTER(ctypes.c_float)()
+
+        xValues= (ctypes.c_float * 100)()
+        yValues= (ctypes.c_float * 100)()
+
         ierr= self._lib.EN_getcurve(self.ph, curveIndex,
                               ctypes.byref(curveid),
                               ctypes.byref(nValues),
-                              ctypes.byref(xValues),
-                              ctypes.byref(yValues)
-                              )
+                              xValues,
+                              yValues)
         # strange behavior of ENgetcurve: it returns also curveID
         # better split in two distinct functions ....
         if ierr!=0: raise ENtoolkitError(self, ierr)

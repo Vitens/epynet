@@ -88,6 +88,8 @@ class Pump(Link):
 
     @curve.setter
     def curve(self, value):
+
+
         if isinstance(value, int):
             curve_index = value
         elif isinstance(value, str):
@@ -97,6 +99,8 @@ class Pump(Link):
         else:
             raise ValueError("Invalid input for curve")
 
+        # set network as unsolved
+        self.network().solved = False
         self.network().ep.ENsetheadcurveindex(self.index, curve_index)
 
 

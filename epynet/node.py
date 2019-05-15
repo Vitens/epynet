@@ -98,6 +98,7 @@ class Junction(Node):
         else:
             pattern_index = value.index
 
+        self.network().solved = False
         self.set_object_value(epanet2.EN_PATTERN, pattern_index)
 
 class Tank(Node):

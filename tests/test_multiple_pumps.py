@@ -3,15 +3,11 @@ from nose.tools import assert_equal, assert_almost_equal
 import pandas as pd
 
 
-class TestNetwork(object):
+class TestMultiplePumps(object):
     @classmethod
     def setup_class(self):
         self.network = Network()
-        self.network.solve()
 
-    @classmethod
-    def teardown(self):
-        self.network.ep.ENclose()
 
     def test01_multiple_pumps(self):
 
@@ -42,3 +38,14 @@ class TestNetwork(object):
 
         assert_almost_equal(P1.flow, 225.88, 2)
         assert_almost_equal(P2.flow, 248.14, 2)
+
+        C3 = network.add_curve("3", [[100, 30]])
+        C4 = network.add_curve("4", [[100, 50]])
+
+        P1.curve = C3
+        P2.curve = C4
+
+        network.solve()
+
+        assert_almost_equal(P1.flow, 173.09, 2)
+        assert_almost_equal(P2.flow, 184.10, 2)

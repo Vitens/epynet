@@ -1,4 +1,6 @@
 """ EPYNET Classes """
+import atexit
+
 from . import epanet2
 from .objectcollection import ObjectCollection
 from .node import Junction, Tank, Reservoir
@@ -21,9 +23,14 @@ class Network(object):
             self.ep.ENopen(self.inputfile, self.rptfile, self.binfile)
         else:
             self.inputfile = False
-            self.rptfile = "net.rpt"
-            self.binfile = "net.bin"
+
+            self.rptfile = ""
+            self.binfile = ""
+
             self.ep.ENinit(self.rptfile.encode(), self.binfile.encode(), units, headloss)
+
+
+
 
         self.vertices = {}
         # prepare network data
@@ -66,6 +73,7 @@ class Network(object):
 
             self.nodes[node.uid] = node
 
+
         # load links
         for index in range(1, self.ep.ENgetcount(epanet2.EN_LINKCOUNT)+1):
             link_type = self.ep.ENgetlinktype(index)
@@ -88,10 +96,13 @@ class Network(object):
             link.to_node = self.nodes[self.ep.ENgetnodeid(link_nodes[1])]
             link.to_node.links[link.uid] = link
 
-        # load curves
+
+        # load curves 
+
         for index in range(1, self.ep.ENgetcount(epanet2.EN_CURVECOUNT)+1):
             uid = self.ep.ENgetcurveid(index)
             self.curves[uid] = Curve(uid, self)
+
         # load patterns
         for index in range(1, self.ep.ENgetcount(epanet2.EN_PATCOUNT)+1):
             uid = self.ep.ENgetpatternid(index)
@@ -146,11 +157,16 @@ class Network(object):
         self.ep.ENdeletelink(index)
 
     def add_reservoir(self, uid, x, y, elevation=0):
+
         self.ep.ENaddnode(uid, epanet2.EN_RESERVOIR)
+
         index = self.ep.ENgetnodeindex(uid)
+
         self.ep.ENsetcoord(index, x, y)
+
         node = Reservoir(uid, self)
         node.elevation = elevation
+
         self.reservoirs[uid] = node
         self.nodes[uid] = node
 
@@ -394,3 +410,6 @@ class Network(object):
 
 
 
+    def close(self):
+        print('closing')
+        self.ep.ENdeleteproject()
