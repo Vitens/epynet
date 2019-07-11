@@ -136,6 +136,9 @@ class Network(object):
 
         self.ep.ENdeletenode(index)
 
+        self.invalidate_nodes()
+        self.invalidate_links()
+
     def delete_link(self, uid):
 
         index = self.ep.ENgetlinkindex(uid)
@@ -149,12 +152,16 @@ class Network(object):
 
         if link_type == epanet2.EN_PIPE or link_type == epanet2.EN_CVPIPE:
             del self.pipes[uid]
-        elif link_type == epanet2.EN_RESERVOIR:
+        elif link_type == epanet2.EN_PUMP:
             del self.pumps[uid]
         else:
             del self.valves[uid]
 
         self.ep.ENdeletelink(index)
+
+        self.invalidate_nodes()
+        self.invalidate_links()
+
 
     def add_reservoir(self, uid, x, y, elevation=0):
 

@@ -503,12 +503,12 @@ class EPANET2(object):
 
         return index
 
-    def ENdeletenode(self, node_index):
-        ierr= self._lib.EN_deletenode(self.ph, ctypes.c_int(node_index))
+    def ENdeletenode(self, node_index, conditional=0):
+        ierr= self._lib.EN_deletenode(self.ph, ctypes.c_int(node_index), ctypes.c_int(conditional))
         if ierr!=0: raise ENtoolkitError(self, ierr)
 
-    def ENdeletelink(self, link_index):
-        ierr= self._lib.EN_deletelink(self.ph, ctypes.c_int(link_index))
+    def ENdeletelink(self, link_index, conditional=0):
+        ierr= self._lib.EN_deletelink(self.ph, ctypes.c_int(link_index), ctypes.c_int(conditional))
         if ierr!=0: raise ENtoolkitError(self, ierr)
 
     def ENaddlink(self, link_id, link_type_code, from_node_id, to_node_id):

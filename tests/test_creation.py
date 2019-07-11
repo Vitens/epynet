@@ -235,3 +235,38 @@ class TestGeneratedNetwork(object):
         assert(isinstance(self.network.pipes['1'].velocity, float))
         assert(isinstance(self.network.pipes.velocity, pd.Series))
 
+    def test12_deletion(self):
+        # Delete node
+        self.network.delete_node('10')
+        assert_equal(len(self.network.nodes), 10)
+        assert_equal(len(self.network.links), 11)
+        assert_equal(len(self.network.valves), 0)
+
+        self.network.solve()
+        assert_almost_equal(self.network.junctions['9'].pressure, 11.21, 2)
+
+        # Delete Tank
+        self.network.delete_node('11')
+
+        assert_equal(len(self.network.tanks), 0)
+        assert_equal(len(self.network.links), 10)
+
+        self.network.solve()
+        assert_almost_equal(self.network.junctions['9'].pressure, 76.60, 2)
+
+        # Delete link
+        self.network.delete_link('7')
+        assert_equal(len(self.network.links), 9)
+
+        self.network.solve()
+        assert_almost_equal(self.network.pipes['6'].flow, 1)
+
+        # delete pump
+        self.network.delete_link('2')
+        assert_equal(len(self.network.pumps), 0)
+
+        # add link instead
+        self.network.add_pipe('R2', '2', '3', diameter=200, length=100, roughness=0.1)
+        self.network.solve()
+
+        assert_almost_equal(self.network.junctions['9'].pressure, 9.99, 2)
