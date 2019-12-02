@@ -8,7 +8,7 @@ class Node(BaseObject):
     """ Base EPANET Node class """
 
     static_properties = {'elevation': epanet2.EN_ELEVATION}
-    properties = {'head': epanet2.EN_HEAD, 'pressure': epanet2.EN_PRESSURE}
+    properties = {'head': epanet2.EN_HEAD, 'pressure': epanet2.EN_PRESSURE, 'quality': epanet2.EN_QUALITY}
 
     def __init__(self, uid, network):
         super(Node, self).__init__(uid, network)
@@ -80,7 +80,7 @@ class Reservoir(Node):
 class Junction(Node):
     """ EPANET Junction Class """
     static_properties = {'elevation': epanet2.EN_ELEVATION, 'basedemand': epanet2.EN_BASEDEMAND, 'emitter': epanet2.EN_EMITTER}
-    properties = {'head': epanet2.EN_HEAD, 'pressure': epanet2.EN_PRESSURE, 'demand': epanet2.EN_DEMAND}
+    properties = {'head': epanet2.EN_HEAD, 'pressure': epanet2.EN_PRESSURE, 'demand': epanet2.EN_DEMAND, 'quality': epanet2.EN_QUALITY}
     node_type = "Junction"
 
     @property

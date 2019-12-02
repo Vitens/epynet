@@ -352,14 +352,20 @@ class Network(object):
         self.ep.ENopenH()
         self.ep.ENinitH(0)
 
+        self.ep.ENopenQ()
+        self.ep.ENinitQ()
+
         simtime = 0
         timestep = 1
+        qstep = 1
 
         self.solved = True
 
         while timestep > 0:
             self.ep.ENrunH()
+            self.ep.ENrunQ()
             timestep = self.ep.ENnextH()
+            self.ep.ENnextQ()
             self.time.append(simtime)
             self.load_attributes(simtime)
             simtime += timestep
