@@ -370,6 +370,9 @@ class Network(object):
             self.load_attributes(simtime)
             simtime += timestep
 
+        self.ep.ENcloseH()
+        self.ep.ENcloseQ()
+
     def load_attributes(self, simtime):
         for node in self.nodes:
             for property_name in node.properties.keys():
