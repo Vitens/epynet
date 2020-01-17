@@ -182,3 +182,9 @@ class TestNetwork(object):
         assert(isinstance(self.network.pipes["1"].velocity, float))
         assert(isinstance(self.network.pipes.velocity, pd.Series))
 
+    def test12_interactive(self):
+        # run network
+        times = []
+        for t in self.network.run(interactive=True, store_results=False):
+            times.append(t)
+        assert_equal(times, [0, 3600, 7200, 10800, 14400, 18000, 21600, 25200, 28800, 32400, 36000])
