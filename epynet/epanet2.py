@@ -381,7 +381,7 @@ class EPANET2(object):
                     EN_TOLERANCE 
                     EN_EMITEXPON 
                     EN_DEMANDMULT""" 
-        j= ctypes.c_int()
+        j= ctypes.c_float()                                                    #<--- solved: c_int() changed to c_float()
         ierr= self._lib.EN_getoption(self.ph, optioncode, ctypes.byref(j))
         if ierr!=0: raise ENtoolkitError(self, ierr)
         return j.value
@@ -617,7 +617,7 @@ class EPANET2(object):
         if ierr!=0: raise ENtoolkitError(self, ierr)
 
 
-    def ENsetoption(self, optioncode, value):
+    def ENsetoption(self, paramcode, value):                      #<------------- solved: optioncode changed to paramcode
         """Sets the value of a particular analysis option.
 
         Arguments:
