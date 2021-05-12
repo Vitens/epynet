@@ -352,24 +352,31 @@ class EPANET2(object):
 
 
     #-------Retrieving other network information--------
-    def ENgetcontrol(self, cindex, ctype, lindex, setting, nindex, level ):
+    def ENgetcontrol(self, cindex):
         """Retrieves the parameters of a simple control statement.
         Arguments:
            cindex:  control statement index
-           ctype:   control type code EN_LOWLEVEL   (Low Level Control)
-                                      EN_HILEVEL    (High Level Control)
-                                      EN_TIMER      (Timer Control)       
-                                      EN_TIMEOFDAY  (Time-of-Day Control)
-           lindex:  index of link being controlled
-           setting: value of the control setting
-           nindex:  index of controlling node
-           level:   value of controlling water level or pressure for level controls 
-                    or of time of control action (in seconds) for time-based controls"""
-        #int ENgetcontrol(int cindex, int* ctype, int* lindex, float* setting, int* nindex, float* level )
-        ierr= self._lib.EN_getcontrol(self.ph, ctypes.c_int(cindex), ctypes.c_int(ctype), 
-                                ctypes.c_int(lindex), ctypes.c_float(setting), 
-                                ctypes.c_int(nindex), ctypes.c_float(level) )
-        if ierr!=0: raise ENtoolkitError(self, ierr)
+        
+        returns ctype:  control type code:
+                        EN_LOWLEVEL   (Low Level Control)
+                        EN_HILEVEL    (High Level Control)
+                        EN_TIMER      (Timer Control)       
+                        EN_TIMEOFDAY  (Time-of-Day Control)
+                lindex:  index of link being controlled
+                setting: value of the control setting
+                nindex:  index of controlling node
+                level:   value of controlling water level or pressure for level controls 
+                            or of time of control action (in seconds) for time-based controls
+        """
+        type_ = ctypes.c_int()
+        lindex = ctypes.c_int()
+        setting = ctypes.c_float()
+        nindex = ctypes.c_int()
+        level = ctypes.c_float()
+        ierr = self._lib.EN_getcontrol(self.ph, ctypes.c_int(cindex), ctypes.byref(type_), ctypes.byref(lindex),
+                                        ctypes.byref(setting), ctypes.byref(nindex),ctypes.byref(level), ctypes.byref(level))
+        if ierr!=0: raise ENtoolkitError(self,ierr)
+        return type_.value,lindex.value, setting.value, nindex.value, level.value
 
 
     def ENgetoption(self, optioncode):
@@ -684,19 +691,13 @@ class EPANET2(object):
         """retrieves the current simulation time t as datetime.timedelta instance"""
         return datetime.timedelta(seconds= self._current_simulation_time.value )
 
-    def ENnextH(self,timestep):
+        def ENnextH(self):
         """Determines the length of time until the next hydraulic event occurs in an extended period
            simulation."""
-        
-        sum_steps = 0
         _deltat= ctypes.c_long()
-        while sum_steps < timestep:
-            ierr= self._lib.EN_nextH(self.ph, ctypes.byref(_deltat))
-            if ierr!=0: 
-                print(f"Error code {ierr}")
-                return None
-            sum_steps += _deltat.value
-        return sum_steps
+        ierr= self._lib.EN_nextH(self.ph, ctypes.byref(_deltat))
+        if ierr!=0: raise ENtoolkitError(self, ierr)
+        return _deltat.value
 
 
     def ENcloseH(self):
