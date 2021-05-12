@@ -691,7 +691,7 @@ class EPANET2(object):
         """retrieves the current simulation time t as datetime.timedelta instance"""
         return datetime.timedelta(seconds= self._current_simulation_time.value )
 
-        def ENnextH(self):
+    def ENnextH(self):
         """Determines the length of time until the next hydraulic event occurs in an extended period
            simulation."""
         _deltat= ctypes.c_long()
