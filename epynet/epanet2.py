@@ -684,13 +684,19 @@ class EPANET2(object):
         """retrieves the current simulation time t as datetime.timedelta instance"""
         return datetime.timedelta(seconds= self._current_simulation_time.value )
 
-    def ENnextH(self):
+    def ENnextH(self,timestep):
         """Determines the length of time until the next hydraulic event occurs in an extended period
            simulation."""
+        
+        sum_steps = 0
         _deltat= ctypes.c_long()
-        ierr= self._lib.EN_nextH(self.ph, ctypes.byref(_deltat))
-        if ierr!=0: raise ENtoolkitError(self, ierr)
-        return _deltat.value
+        while sum_steps < timestep:
+            ierr= self._lib.EN_nextH(self.ph, ctypes.byref(_deltat))
+            if ierr!=0: 
+                print(f"Error code {ierr}")
+                return None
+            sum_steps += _deltat.value
+        return sum_steps
 
 
     def ENcloseH(self):
