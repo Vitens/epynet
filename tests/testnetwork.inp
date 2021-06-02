@@ -3,7 +3,7 @@
 
 [JUNCTIONS]
 ;ID              	Elev        	Demand      	Pattern         
- 2               	0           	0           	                	;
+ 2               	0           	0           	                	;testcommentjunction
  3               	0           	0           	                	;
  4               	5           	1           	1               	;
  5               	0           	1           	1               	;
@@ -15,15 +15,15 @@
 
 [RESERVOIRS]
 ;ID              	Head        	Pattern         
- in              	10          	                	;
+ in              	10          	                	;testcommentreservoir
 
 [TANKS]
 ;ID              	Elevation   	InitLevel   	MinLevel    	MaxLevel    	Diameter    	MinVol      	VolCurve
- 11              	0           	10          	0           	20          	50          	0           	                	;
+ 11              	0           	10          	0           	20          	50          	0           	                	;testcommenttank
 
 [PIPES]
 ;ID              	Node1           	Node2           	Length      	Diameter    	Roughness   	MinorLoss   	Status
- 1               	in              	2               	100         	100         	0.1         	0           	Open  	;
+ 1               	in              	2               	100         	100         	0.1         	0           	Open  	;testcommentpipe
  3               	3               	4               	100         	100         	0.1         	0           	Open  	;
  4               	4               	5               	100         	100         	0.1         	0           	Open  	;
  5               	5               	6               	100         	100         	0.1         	0           	Open  	;
@@ -36,11 +36,11 @@
 
 [PUMPS]
 ;ID              	Node1           	Node2           	Parameters
- 2               	2               	3               	HEAD 1	;
+ 2               	2               	3               	HEAD 1	;testcommentpump
 
 [VALVES]
 ;ID              	Node1           	Node2           	Diameter    	Type	Setting     	MinorLoss   
- 9               	9               	10              	100         	PRV 	5           	0           	;
+ 9               	9               	10              	100         	PRV 	5           	0           	;testcommentvalve
 
 [TAGS]
 

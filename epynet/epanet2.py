@@ -100,6 +100,29 @@ class EPANET2(object):
         if ierr!=0: raise ENtoolkitError(self, ierr)
         return j.value
 
+    def ENgetcomment(self, object_type, index):
+        """Retrieves the comment of an object with a object type and index
+
+        Arguments:
+        object_type: object type
+        index: object index
+        """
+        label = ctypes.create_string_buffer(1024)
+        ierr = self._lib.EN_getcomment(self.ph, object_type, index, ctypes.byref(label))
+        if ierr!=0: raise ENtoolkitError(self, ierr)
+        return label.value.decode(self.charset)
+
+    def ENsetcomment(self, object_type, index, comment):
+        """Retrieves the comment of an object with a object type and index
+
+        Arguments:
+        object_type: object type
+        index: object index
+        """
+        ierr = self._lib.EN_setcomment(self.ph, object_type, index, ctypes.c_char_p(comment.encode(self.charset)))
+        if ierr!=0: raise ENtoolkitError(self, ierr)
+
+
 
     def ENgetnodeid(self, index):
         """Retrieves the ID label of a node with a specified index.
