@@ -27,8 +27,18 @@ class Link(BaseObject):
         return self.network().ep.ENgetlinkvalue(index, code)
 
     @property
+    def comment(self):
+        return self.network().ep.ENgetcomment(1, self.index) # get comment from LINK table
+
+    @comment.setter
+    def comment(self, value):
+        return self.network().ep.ENsetcomment(1, self.index, value) # set comment from LINK table
+
+
+    @property
     def index(self):
         return self.get_index(self.uid)
+
 
     # upstream and downstream nodes
     @lazy_property

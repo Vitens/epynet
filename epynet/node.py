@@ -24,6 +24,14 @@ class Node(BaseObject):
 
     def get_object_value(self, code):
         return self.network().ep.ENgetnodevalue(self.index, code)
+    
+    @property
+    def comment(self):
+        return self.network().ep.ENgetcomment(0, self.index) # get comment from NODE table
+
+    @comment.setter
+    def comment(self, value):
+        return self.network().ep.ENsetcomment(0, self.index, value) # set comment from LINK table
 
     @property
     def index(self):
