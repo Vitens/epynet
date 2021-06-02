@@ -18,8 +18,8 @@ class ObjectCollection(dict):
     def __setattr__(self, name, value):
 
         if isinstance(value, pd.Series):
-            for key, item in self.items():
-                setattr(item,name,value[item.uid])
+            for key, val in value.items():
+                setattr(self[key],name,val)
             return
 
         for key, item in self.items():
