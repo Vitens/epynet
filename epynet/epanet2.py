@@ -375,24 +375,31 @@ class EPANET2(object):
 
 
     #-------Retrieving other network information--------
-    def ENgetcontrol(self, cindex, ctype, lindex, setting, nindex, level ):
+    def ENgetcontrol(self, cindex):
         """Retrieves the parameters of a simple control statement.
         Arguments:
            cindex:  control statement index
-           ctype:   control type code EN_LOWLEVEL   (Low Level Control)
-                                      EN_HILEVEL    (High Level Control)
-                                      EN_TIMER      (Timer Control)       
-                                      EN_TIMEOFDAY  (Time-of-Day Control)
-           lindex:  index of link being controlled
-           setting: value of the control setting
-           nindex:  index of controlling node
-           level:   value of controlling water level or pressure for level controls 
-                    or of time of control action (in seconds) for time-based controls"""
-        #int ENgetcontrol(int cindex, int* ctype, int* lindex, float* setting, int* nindex, float* level )
-        ierr= self._lib.EN_getcontrol(self.ph, ctypes.c_int(cindex), ctypes.c_int(ctype), 
-                                ctypes.c_int(lindex), ctypes.c_float(setting), 
-                                ctypes.c_int(nindex), ctypes.c_float(level) )
-        if ierr!=0: raise ENtoolkitError(self, ierr)
+        
+        returns ctype:  control type code:
+                        EN_LOWLEVEL   (Low Level Control)
+                        EN_HILEVEL    (High Level Control)
+                        EN_TIMER      (Timer Control)       
+                        EN_TIMEOFDAY  (Time-of-Day Control)
+                lindex:  index of link being controlled
+                setting: value of the control setting
+                nindex:  index of controlling node
+                level:   value of controlling water level or pressure for level controls 
+                            or of time of control action (in seconds) for time-based controls
+        """
+        type_ = ctypes.c_int()
+        lindex = ctypes.c_int()
+        setting = ctypes.c_float()
+        nindex = ctypes.c_int()
+        level = ctypes.c_float()
+        ierr = self._lib.EN_getcontrol(self.ph, ctypes.c_int(cindex), ctypes.byref(type_), ctypes.byref(lindex),
+                                        ctypes.byref(setting), ctypes.byref(nindex),ctypes.byref(level), ctypes.byref(level))
+        if ierr!=0: raise ENtoolkitError(self,ierr)
+        return type_.value,lindex.value, setting.value, nindex.value, level.value
 
 
     def ENgetoption(self, optioncode):
@@ -404,7 +411,7 @@ class EPANET2(object):
                     EN_TOLERANCE 
                     EN_EMITEXPON 
                     EN_DEMANDMULT""" 
-        j= ctypes.c_int()
+        j= ctypes.c_float()                                                    #<--- solved: c_int() changed to c_float()
         ierr= self._lib.EN_getoption(self.ph, optioncode, ctypes.byref(j))
         if ierr!=0: raise ENtoolkitError(self, ierr)
         return j.value
@@ -640,7 +647,7 @@ class EPANET2(object):
         if ierr!=0: raise ENtoolkitError(self, ierr)
 
 
-    def ENsetoption(self, optioncode, value):
+    def ENsetoption(self, paramcode, value):                      #<------------- solved: optioncode changed to paramcode
         """Sets the value of a particular analysis option.
 
         Arguments:
