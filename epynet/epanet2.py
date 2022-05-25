@@ -650,7 +650,7 @@ class EPANET2(object):
                                   EN_EMITEXPON 
                                   EN_DEMANDMULT
           value:  option value"""
-        ierr= self._lib.EN_setoption(self.ph, ctypes.c_int(paramcode), ctypes.c_float(value))
+        ierr= self._lib.EN_setoption(self.ph, ctypes.c_int(optioncode), ctypes.c_float(value))
         if ierr!=0: raise ENtoolkitError(self, ierr)
 
 
