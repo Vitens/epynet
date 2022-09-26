@@ -324,7 +324,7 @@ class EPANET2(object):
     def ENgettimeparam(self, paramcode):
         """Retrieves the value of a specific analysis time parameter.
         Arguments:
-        paramcode: EN_DURATION     
+        paramcode: EN_DURATION
                    EN_HYDSTEP
                    EN_QUALSTEP
                    EN_PATTERNSTEP
@@ -338,6 +338,24 @@ class EPANET2(object):
         ierr = self._lib.EN_gettimeparam(self.ph, paramcode, ctypes.byref(j))
         if ierr != 0: raise ENtoolkitError(self, ierr)
         return j.value
+
+    def ENgetqualinfo(self):
+        """Gets information about the type of water quality analysis requested.
+        ARGUMENTS:
+            [out]	qualType	    type of analysis to run (see EN_QualityType).
+            [out]	out_chemName	name of chemical constituent.
+            [out]	out_chemUnits	concentration units of the constituent.
+            [out]	traceNode	    index of the node being traced (if applicable). """
+
+        out_qualType = ctypes.c_int()
+        out_chemName = ctypes.c_char_p()
+        out_chemUnits = ctypes.c_char_p()
+        out_traceNode = ctypes.c_int()
+
+        ierr = self._lib.EN_getqualinfo(self.ph,ctypes.byref(out_qualType),ctypes.byref(out_chemName),
+                                        ctypes.byref(out_chemUnits),ctypes.byref(out_traceNode))
+
+        return out_qualType.value, out_chemName.value, out_chemUnits.value, out_traceNode.value
 
     def ENgetqualtype(self, qualcode):
         """Retrieves the type of water quality analysis called for
@@ -357,35 +375,43 @@ class EPANET2(object):
         return qualcode.value, tracenode.value
 
     # -------Retrieving other network information--------
-    def ENgetcontrol(self, cindex, ctype, lindex, setting, nindex, level):
+    def ENgetcontrol(self, cindex):  # <------------
         """Retrieves the parameters of a simple control statement.
         Arguments:
            cindex:  control statement index
-           ctype:   control type code EN_LOWLEVEL   (Low Level Control)
-                                      EN_HILEVEL    (High Level Control)
-                                      EN_TIMER      (Timer Control)       
-                                      EN_TIMEOFDAY  (Time-of-Day Control)
-           lindex:  index of link being controlled
-           setting: value of the control setting
-           nindex:  index of controlling node
-           level:   value of controlling water level or pressure for level controls 
-                    or of time of control action (in seconds) for time-based controls"""
-        # int ENgetcontrol(int cindex, int* ctype, int* lindex, float* setting, int* nindex, float* level )
-        ierr = self._lib.EN_getcontrol(self.ph, ctypes.c_int(cindex), ctypes.c_int(ctype),
-                                       ctypes.c_int(lindex), ctypes.c_float(setting),
-                                       ctypes.c_int(nindex), ctypes.c_float(level))
+
+        returns: ctype:  control type code:
+                        EN_LOWLEVEL   (Low Level Control)
+                        EN_HILEVEL    (High Level Control)
+                        EN_TIMER      (Timer Control)
+                        EN_TIMEOFDAY  (Time-of-Day Control)
+                lindex:  index of link being controlled
+                setting: value of the control setting
+                nindex:  index of controlling node
+                level:   value of controlling water level or pressure for level controls
+                            or of time of control action (in seconds) for time-based controls
+        """
+        type_ = ctypes.c_int()  # <--------------
+        lindex = ctypes.c_int()  # <-------------
+        setting = ctypes.c_float()  # <----------
+        nindex = ctypes.c_int()  # <------------
+        level = ctypes.c_float()  # <------------
+        ierr = self._lib.EN_getcontrol(self.ph, ctypes.c_int(cindex), ctypes.byref(type_), ctypes.byref(lindex),
+                                       ctypes.byref(setting), ctypes.byref(nindex), ctypes.byref(level),
+                                       ctypes.byref(level))  # <------------
         if ierr != 0: raise ENtoolkitError(self, ierr)
+        return type_.value, lindex.value, setting.value, nindex.value, level.value  # <------------
 
     def ENgetoption(self, optioncode):
         """Retrieves the value of a particular analysis option.
 
         Arguments:
-        optioncode: EN_TRIALS       
-                    EN_ACCURACY 
-                    EN_TOLERANCE 
-                    EN_EMITEXPON 
+        optioncode: EN_TRIALS
+                    EN_ACCURACY
+                    EN_TOLERANCE
+                    EN_EMITEXPON
                     EN_DEMANDMULT"""
-        j = ctypes.c_int()
+        j = ctypes.c_float()
         ierr = self._lib.EN_getoption(self.ph, optioncode, ctypes.byref(j))
         if ierr != 0: raise ENtoolkitError(self, ierr)
         return j.value
@@ -398,24 +424,25 @@ class EPANET2(object):
         return j.value
 
     # ---------Setting new values for network parameters-------------
-    def ENaddcontrol(self, ctype, lindex, setting, nindex, level):
+
+    def ENaddcontrol(self, ctype, lindex, setting, nindex, level ):
         """Sets the parameters of a simple control statement.
         Arguments:
            ctype:   control type code  EN_LOWLEVEL   (Low Level Control)
-                                       EN_HILEVEL    (High Level Control)  
-                                       EN_TIMER      (Timer Control)       
+                                       EN_HILEVEL    (High Level Control)
+                                       EN_TIMER      (Timer Control)
                                        EN_TIMEOFDAY  (Time-of-Day Control)
            lindex:  index of link being controlled
            setting: value of the control setting
            nindex:  index of controlling node
            level:   value of controlling water level or pressure for level controls
                     or of time of control action (in seconds) for time-based controls"""
-        # int ENsetcontrol(int cindex, int* ctype, int* lindex, float* setting, int* nindex, float* level )
+        #int ENsetcontrol(int cindex, int* ctype, int* lindex, float* setting, int* nindex, float* level )
         cindex = ctypes.c_int()
-        ierr = self._lib.EN_addcontrol(self.ph, ctypes.byref(cindex), ctypes.c_int(ctype),
-                                       ctypes.c_int(lindex), ctypes.c_float(setting),
-                                       ctypes.c_int(nindex), ctypes.c_float(level))
-        if ierr != 0: raise ENtoolkitError(self, ierr)
+        ierr= self._lib.EN_addcontrol(self.ph, ctypes.c_int(ctype),
+                                ctypes.c_int(lindex), ctypes.c_float(setting),
+                                ctypes.c_int(nindex), ctypes.c_double(level), ctypes.byref(cindex))
+        if ierr!=0: raise ENtoolkitError(self, ierr)
         return cindex
 
     def ENsetcontrol(self, cindex, ctype, lindex, setting, nindex, level):
@@ -423,8 +450,8 @@ class EPANET2(object):
         Arguments:
            cindex:  control statement index
            ctype:   control type code  EN_LOWLEVEL   (Low Level Control)
-                                       EN_HILEVEL    (High Level Control)  
-                                       EN_TIMER      (Timer Control)       
+                                       EN_HILEVEL    (High Level Control)
+                                       EN_TIMER      (Timer Control)
                                        EN_TIMEOFDAY  (Time-of-Day Control)
            lindex:  index of link being controlled
            setting: value of the control setting
@@ -479,8 +506,8 @@ class EPANET2(object):
                      EN_KWALL        Wall reaction coeff.
                      EN_STATUS       * Actual link status (0 = closed, 1 = open)
                      EN_SETTING      * Roughness for pipes, actual speed for pumps, actual setting for valves
-                     * Use EN_INITSTATUS and EN_INITSETTING to set the design value for a link's status or setting that 
-                       exists prior to the start of a simulation. Use EN_STATUS and EN_SETTING to change these values while 
+                     * Use EN_INITSTATUS and EN_INITSETTING to set the design value for a link's status or setting that
+                       exists prior to the start of a simulation. Use EN_STATUS and EN_SETTING to change these values while
                        a simulation is being run (within the ENrunH - ENnextH loop).
 
         value:parameter value"""
@@ -536,7 +563,26 @@ class EPANET2(object):
         ierr = self._lib.EN_addcurve(self.ph, ctypes.c_char_p(curve_id.encode(self.charset)))
         if ierr != 0: raise ENtoolkitError(self, ierr)
 
+    def ENdeletecurve(self, index):
+        """Deletes a data curve from a project.
+
+        ARGUMENTS:
+                index: the data curve's index (starting from 1).  """
+
+        ierr = self._lib.EN_deletecurve(self.ph, ctypes.c_int(index))
+        if ierr != 0: raise ENtoolkitError(self, ierr)
+
+
     def ENsetcurvevalue(self, curve_index, point_index, x, y):
+        """Sets the value of a single data point for a curve.
+
+        ARGUMENTS:
+                curveIndex	a curve's index (starting from 1).
+                pointIndex	the index of a point on the curve (starting from 1).
+                x	the point's new x-value.
+                y	the point's new y-value.   """
+
+
         ierr = self._lib.EN_setcurvevalue(self.ph, ctypes.c_int(curve_index), ctypes.c_int(point_index),
                                           ctypes.c_float(x), ctypes.c_float(y))
         if ierr != 0: raise ENtoolkitError(self, ierr)
@@ -545,6 +591,15 @@ class EPANET2(object):
         ierr = self._lib.EN_setcoord(self.ph, ctypes.c_int(index),
                                      ctypes.c_float(x),
                                      ctypes.c_float(y))
+        if ierr != 0: raise ENtoolkitError(self, ierr)
+
+    def ENdeletepattern(self, index):
+        """Deletes a time pattern from a project.
+
+        ARGUMENTS:
+                index: The time pattern's index (starting from 1).  """
+
+        ierr = self._lib.EN_deletepattern(self.ph, ctypes.c_int(index))
         if ierr != 0: raise ENtoolkitError(self, ierr)
 
     def ENaddpattern(self, patternid):
@@ -560,7 +615,8 @@ class EPANET2(object):
         Arguments:
         index:    time pattern index
         factors:  multiplier factors list for the entire pattern"""
-        # int ENsetpattern( int index, float* factors, int nfactors )
+
+
         nfactors = len(factors)
         cfactors_type = ctypes.c_float * nfactors
         cfactors = cfactors_type()
@@ -622,9 +678,9 @@ class EPANET2(object):
 
         Arguments:
           optioncode: option code EN_TRIALS
-                                  EN_ACCURACY  
-                                  EN_TOLERANCE 
-                                  EN_EMITEXPON 
+                                  EN_ACCURACY
+                                  EN_TOLERANCE
+                                  EN_EMITEXPON
                                   EN_DEMANDMULT
           value:  option value"""
         ierr = self._lib.EN_setoption(self.ph, ctypes.c_int(optioncode), ctypes.c_float(value))
@@ -643,7 +699,7 @@ class EPANET2(object):
 
     # ----------Running a hydraulic analysis --------------------------
     def ENsolveH(self):
-        """Runs a complete hydraulic simulation with results 
+        """Runs a complete hydraulic simulation with results
         for all time periods written to the binary Hydraulics file."""
         ierr = self._lib.EN_solveH(self.ph, )
         if ierr != 0: raise ENtoolkitError(self, ierr)
@@ -653,7 +709,7 @@ class EPANET2(object):
         ierr = self._lib.EN_openH(self.ph, )
 
     def ENinitH(self, flag=None):
-        """Initializes storage tank levels, link status and settings, 
+        """Initializes storage tank levels, link status and settings,
         and the simulation clock time prior
     to running a hydraulic analysis.
 
@@ -662,7 +718,7 @@ class EPANET2(object):
         if ierr != 0: raise ENtoolkitError(self, ierr)
 
     def ENrunH(self):
-        """Runs a single period hydraulic analysis, 
+        """Runs a single period hydraulic analysis,
         retrieving the current simulation clock time t"""
         ierr = self._lib.EN_runH(self.ph, ctypes.byref(self._current_simulation_time))
         if ierr >= 100:
@@ -695,7 +751,7 @@ class EPANET2(object):
 
     # ----------Running a quality analysis --------------------------
     def ENsolveQ(self):
-        """Runs a complete water quality simulation with results 
+        """Runs a complete water quality simulation with results
         at uniform reporting intervals written to EPANET's binary Output file."""
         ierr = self._lib.EN_solveQ(self.ph, )
         if ierr != 0: raise ENtoolkitError(self, ierr)
@@ -705,7 +761,7 @@ class EPANET2(object):
         ierr = self._lib.EN_openQ(self.ph, )
 
     def ENinitQ(self, flag=None):
-        """Initializes water quality and the simulation clock 
+        """Initializes water quality and the simulation clock
         time prior to running a water quality analysis.
 
         flag  EN_NOSAVE | EN_SAVE """
@@ -714,7 +770,7 @@ class EPANET2(object):
 
     def ENrunQ(self):
         """Makes available the hydraulic and water quality results
-        that occur at the start of the next time period of a water quality analysis, 
+        that occur at the start of the next time period of a water quality analysis,
         where the start of the period is returned in t."""
         ierr = self._lib.EN_runQ(self.ph, ctypes.byref(self._current_simulation_time))
         if ierr >= 100:
@@ -723,7 +779,7 @@ class EPANET2(object):
             return self.ENgeterror(ierr)
 
     def ENnextQ(self):
-        """Advances the water quality simulation 
+        """Advances the water quality simulation
         to the start of the next hydraulic time period."""
         _deltat = ctypes.c_long()
         ierr = self._lib.EN_nextQ(self.ph, ctypes.byref(_deltat))
@@ -731,7 +787,7 @@ class EPANET2(object):
         return _deltat.value
 
     def ENstepQ(self):
-        """Advances the water quality simulation one water quality time step. 
+        """Advances the water quality simulation one water quality time step.
         The time remaining in the overall simulation is returned in tleft."""
         tleft = ctypes.c_long()
         ierr = self._lib.EN_nextQ(self.ph, ctypes.byref(tleft))
@@ -739,7 +795,7 @@ class EPANET2(object):
         return tleft.value
 
     def ENcloseQ(self):
-        """Closes the water quality analysis system, 
+        """Closes the water quality analysis system,
         freeing all allocated memory."""
         ierr = self._lib.EN_closeQ(self.ph, )
         if ierr != 0: raise ENtoolkitError(self, ierr)
@@ -747,46 +803,46 @@ class EPANET2(object):
     # --------------------------------------------
 
     def ENsaveH(self):
-        """Transfers results of a hydraulic simulation 
+        """Transfers results of a hydraulic simulation
         from the binary Hydraulics file to the binary
-        Output file, where results are only reported at 
+        Output file, where results are only reported at
         uniform reporting intervals."""
         ierr = self._lib.EN_saveH(self.ph, )
         if ierr != 0: raise ENtoolkitError(self, ierr)
 
     def ENsaveinpfile(self, fname):
-        """Writes all current network input data to a file 
+        """Writes all current network input data to a file
         using the format of an EPANET input file."""
         ierr = self._lib.EN_saveinpfile(self.ph, ctypes.c_char_p(fname.encode()))
         if ierr != 0: raise ENtoolkitError(self, ierr)
 
     def ENreport(self):
-        """Writes a formatted text report on simulation results 
+        """Writes a formatted text report on simulation results
         to the Report file."""
         ierr = self._lib.EN_report(self.ph, )
         if ierr != 0: raise ENtoolkitError(self, ierr)
 
     def ENresetreport(self):
-        """Clears any report formatting commands 
-        
-        that either appeared in the [REPORT] section of the 
-        EPANET Input file or were issued with the 
+        """Clears any report formatting commands
+
+        that either appeared in the [REPORT] section of the
+        EPANET Input file or were issued with the
         ENsetreport function"""
         ierr = self._lib.EN_resetreport(self.ph, )
         if ierr != 0: raise ENtoolkitError(self, ierr)
 
     def ENsetreport(self, command):
-        """Issues a report formatting command. 
-        
-        Formatting commands are the same as used in the 
+        """Issues a report formatting command.
+
+        Formatting commands are the same as used in the
         [REPORT] section of the EPANET Input file."""
         ierr = self._lib.EN_setreport(self.ph, ctypes.c_char_p(command.encode(self.charset)))
         if ierr != 0: raise ENtoolkitError(self, ierr)
 
     def ENsetstatusreport(self, statuslevel):
-        """Sets the level of hydraulic status reporting. 
-        
-        statuslevel:  level of status reporting  
+        """Sets the level of hydraulic status reporting.
+
+        statuslevel:  level of status reporting
                       0 - no status reporting
                       1 - normal reporting
                       2 - full status reporting"""
@@ -874,50 +930,16 @@ class EPANET2(object):
 
     # Simple Control Functions
 
-    def ENaddcontrol(self, type, linkindex, setting, nodeindex, level):
-        """Adds a new simple control to a project.
-
-        ARGUMENTS:
-                type	    The type of control to add (see EN_ControlType).
-	            linkIndex	The index of a link to control (starting from 1).
-	            setting	    Control setting applied to the link.
-	            nodeIndex	Index of the node used to control the link (0 for EN_TIMER and EN_TIMEOFDAY controls).
-	            level	    Action level (tank level, junction pressure, or time in seconds) that triggers the control.
-                [out]	    Index	index of the new control. """
-
-        ierr = self._lib.EN_addcontrol(self.ph, ctypes.c_int(type), ctypes.c_int(linkindex), ctypes.c_double(setting),
-                                       ctypes.c_int(nodeindex), ctypes.c_double(level))
-        if ierr != 0: raise ENtoolkitError(self, ierr)
-
     def ENdeletecontrol(self, index):
         """Deletes an existing simple control.
 
         ARGUMENTS:
                 index: The index of the control to delete (starting from 1). """
 
-        ierr = self._lib.EN_deletecontrole(self.ph, ctypes.c_int(index))
+        ierr = self._lib.EN_deletecontrol(self.ph, ctypes.c_int(index))
         if ierr != 0: raise ENtoolkitError(self, ierr)
 
-    def ENgetcontrol(self, index):
-        """Retrieves the properties of a simple control.
-        Arguments:
-            	index	the control's index (starting from 1).
-        [out]	type	the type of control (see EN_ControlType).
-        [out]	linkIndex	the index of the link being controlled.
-        [out]	setting	the control setting applied to the link.
-        [out]	nodeIndex	the index of the node used to trigger the control (0 for EN_TIMER and EN_TIMEOFDAY controls).
-        [out]	level	the action level (tank level, junction pressure, or time in seconds) that triggers the control.
-        """
 
-        j1 = ctypes.c_int()
-        j2 = ctypes.c_int()
-        j3 = ctypes.c_double()
-        j4 = ctypes.c_int
-        j5 = ctypes.c_double()
-        ierr = self._lib.EN_getcontrol(self.ph, index, ctypes.byref(j1), ctypes.byref(j2), ctypes.byref(j3),
-                                       ctypes.byref(j4), ctypes.byref(j4))
-        if ierr != 0: raise ENtoolkitError(self, ierr)
-        return j1.value, j2.value, j3.value, j4.value, j5.value
 
     def ENsetcontrol(self, index, type, linkindex, setting, nodeindex, level):
         """Sets the properties of an existing simple control.
@@ -939,13 +961,17 @@ class EPANET2(object):
     # Rule-Based Control Functions
 
     def ENaddrule(self, rule):
-        """rule: text of the rule following the format used in an EPANET input file. """
+        """Adds a new rule-based control to a project.
+        Arguments:
+                rule: text of the rule following the format used in an EPANET input file. """
 
-        ierr = self._lib.EN_addrule(self.ph, ctypes.c_char_p(rule.encode()))
+        ierr = self._lib.EN_addrule(self.ph, ctypes.c_char_p(rule.encode(self.charset)))
         if ierr != 0: raise ENtoolkitError(self, ierr)
 
     def ENdeleterule(self, index):
-        """index: he index of the rule to be deleted (starting from 1) """
+        """Deletes an existing rule-based control.
+        Arguments:
+                index: he index of the rule to be deleted (starting from 1) """
 
         ierr = self._lib.EN_deleterule(self.ph, ctypes.c_int(index))
         if ierr != 0: raise ENtoolkitError(self, ierr)
@@ -1022,7 +1048,7 @@ class EPANET2(object):
         ierr = self._lib.EN_setpremise(self.ph, ctypes.c_int(index), ctypes.c_int(premiseIndex),
                                        ctypes.c_int(logop), ctypes.c_int(object), ctypes.c_int(objindex),
                                        ctypes.c_int(variable), ctypes.c_int(relop), ctypes.c_int(status),
-                                       ctypes.c_double(value))
+                                       ctypes.c_float(value))
         if ierr != 0: raise ENtoolkitError(self, ierr)
 
     def ENgetthenaction(self, index, actionIndex):
@@ -1134,6 +1160,18 @@ class EPANET2(object):
         ierr = self._lib.EN_setthenaction(self.ph, ctypes.c_int(index), ctypes.c_int(actionIndex),
                                           ctypes.c_int(linkindex), ctypes.c_int(status), ctypes.c_double(setting))
         if ierr != 0: raise ENtoolkitError(self, ierr)
+
+    def ENgeterror(self, errcode):
+        """Returns the text of an error message generated by an error code.
+
+        ARGUMENTS:
+                    errcode	    an error code.
+            [out]	out_errmsg	the error message generated by the error code """
+
+        label = ctypes.create_string_buffer(self._err_max_char)
+        ierr = self._lib.EN_geterror( errcode, ctypes.byref(label))
+        if ierr != 0: raise ENtoolkitError(self, ierr)
+        return label.value.decode(self.charset)
 
 
 EN_ELEVATION = 0  # /* Node parameters */
@@ -1256,7 +1294,8 @@ EN_FIFO = 2
 EN_LIFO = 3
 
 EN_NOSAVE = 0  # /* Save-results-to-file flag */
-EN_SAVE = 1
+EN_SAVE   = 1
+
 EN_INITFLOW = 10  # /* Re-initialize flow flag   */
 
 FlowUnits = {EN_CFS: "cfs",
@@ -1270,6 +1309,38 @@ FlowUnits = {EN_CFS: "cfs",
              EN_CMH: "m3/d",
              EN_CMD: "ML/d"}
 
+EN_R_NODE      = 0 # / *Network objects used in rule-based controls. */
+EN_R_LINK      = 1
+EN_R_SYSTEM    = 2
+
+EN_R_EQ    = 0 # / *Comparison operators used in rule-based controls. */
+EN_R_NE    = 1
+EN_R_LE    = 2
+EN_R_GE    = 3
+EN_R_LT    = 4
+EN_R_GT    = 5
+EN_R_IS    = 6
+EN_R_NOT   = 7
+EN_R_BELOW = 8
+EN_R_ABOVE = 9
+
+N_R_IS_OPEN     = 0 # / *Link status codes used in rule-based controls. */
+EN_R_IS_CLOSED  = 1
+EN_R_IS_ACTIVE  = 2
+
+EN_R_DEMAND 	 = 0 # / *Object variables used in rule-based controls. */
+EN_R_HEAD 	     = 1
+EN_R_GRADE 	     = 2
+EN_R_LEVEL 	     = 3
+EN_R_PRESSURE 	 = 4
+EN_R_FLOW 	     = 5
+EN_R_STATUS 	 = 6
+EN_R_SETTING 	 = 7
+EN_R_POWER 	     = 8
+EN_R_TIME 	     = 9
+EN_R_CLOCKTIME 	 = 10
+EN_R_FILLTIME 	 = 11
+EN_R_DRAINTIME 	 = 12
 
 class ENtoolkitError(Exception):
     def __init__(self, epanet2, ierr):
