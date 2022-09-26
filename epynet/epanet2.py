@@ -375,24 +375,26 @@ class EPANET2(object):
 
 
     #-------Retrieving other network information--------
-    def ENgetcontrol(self, cindex, ctype, lindex, setting, nindex, level ):
-        """Retrieves the parameters of a simple control statement.
+    def ENgetcontrol(self, index):
+        """Retrieves the properties of a simple control.
         Arguments:
-           cindex:  control statement index
-           ctype:   control type code EN_LOWLEVEL   (Low Level Control)
-                                      EN_HILEVEL    (High Level Control)
-                                      EN_TIMER      (Timer Control)       
-                                      EN_TIMEOFDAY  (Time-of-Day Control)
-           lindex:  index of link being controlled
-           setting: value of the control setting
-           nindex:  index of controlling node
-           level:   value of controlling water level or pressure for level controls 
-                    or of time of control action (in seconds) for time-based controls"""
-        #int ENgetcontrol(int cindex, int* ctype, int* lindex, float* setting, int* nindex, float* level )
-        ierr= self._lib.EN_getcontrol(self.ph, ctypes.c_int(cindex), ctypes.c_int(ctype), 
-                                ctypes.c_int(lindex), ctypes.c_float(setting), 
-                                ctypes.c_int(nindex), ctypes.c_float(level) )
-        if ierr!=0: raise ENtoolkitError(self, ierr)
+            	index	the control's index (starting from 1).
+        [out]	type	the type of control (see EN_ControlType).
+        [out]	linkIndex	the index of the link being controlled.
+        [out]	setting	the control setting applied to the link.
+        [out]	nodeIndex	the index of the node used to trigger the control (0 for EN_TIMER and EN_TIMEOFDAY controls).
+        [out]	level	the action level (tank level, junction pressure, or time in seconds) that triggers the control.
+        """
+
+        j1 = ctypes.c_int()
+        j2 = ctypes.c_int()
+        j3 = ctypes.c_double()
+        j4 = ctypes.c_int()
+        j5 = ctypes.c_double()
+        ierr = self._lib.EN_getcontrol(self.ph, index, ctypes.byref(j1), ctypes.byref(j2), ctypes.byref(j3),
+                                       ctypes.byref(j4), ctypes.byref(j4))
+        if ierr != 0: raise ENtoolkitError(self, ierr)
+        return j1.value, j2.value, j3.value, j4.value, j5.value
 
 
     def ENgetoption(self, optioncode):
