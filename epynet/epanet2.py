@@ -269,6 +269,17 @@ class EPANET2(object):
         return j.value
     #------
 
+    def ENdeletepattern(self,index):
+        """Deletes a time pattern from a project.
+
+        Arguments:
+        index: pattern index"""
+
+        label = ctypes.create_string_buffer(self._max_label_len)
+        ierr = self._lib.EN_deletepattern(self.ph, index, ctypes.byref(label))
+        if ierr != 0: raise ENtoolkitError(self, ierr)
+        return label.value.decode(self.charset)  
+    
     def ENgetpatternid(self, index):
         """Retrieves the ID label of a particular time pattern.
 
