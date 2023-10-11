@@ -405,6 +405,207 @@ class EPANET2(object):
                                 ctypes.c_int(nindex), ctypes.c_float(level) )
         if ierr!=0: raise ENtoolkitError(self, ierr)
 
+        def ENaddrule(self, rule):
+        """Adds a new rule-based control to a project.
+        Arguments:
+                rule: text of the rule following the format used in an EPANET input file. """
+
+        ierr = self._lib.EN_addrule(self.ph, ctypes.c_char_p(rule.encode(self.charset)))
+        if ierr != 0: raise ENtoolkitError(self, ierr)
+
+    def ENdeleterule(self, index):
+        """Deletes an existing rule-based control.
+        Arguments:
+                index: he index of the rule to be deleted (starting from 1) """
+
+        ierr = self._lib.EN_deleterule(self.ph, ctypes.c_int(index))
+        if ierr != 0: raise ENtoolkitError(self, ierr)
+
+    def ENgetrule(self, index):
+        """Retrieves the index of a particular rule.
+        Arguments:
+        	    index: the rule's index (starting from 1).
+        [out]	nPremises: number of premises in the rule's IF section.
+        [out]	nThenActions:number of actions in the rule's THEN section.
+        [out]	nElseActions: number of actions in the rule's ELSE section.
+        [out]	priority: the rule's priority value. """
+
+        j1 = ctypes.c_int()
+        j2 = ctypes.c_int()
+        j3 = ctypes.c_int()
+        j4 = ctypes.c_float()
+        ierr = self._lib.EN_getrule(self.ph, index, ctypes.byref(j1), ctypes.byref(j2), ctypes.byref(j3),
+                                    ctypes.byref(j4))
+        if ierr != 0: raise ENtoolkitError(self, ierr)
+        return j1.value, j2.value, j3.value, j4.value
+
+    def ENgetruleid(self, index):
+        """Retrieves the ID label of a node with a specified index.
+        Arguments:
+        index: the rule's index (starting from 1)
+        [out] out_id: the rule's ID name."""
+
+        label = ctypes.create_string_buffer(self._max_label_len)
+        ierr = self._lib.EN_getruleID(self.ph, index, ctypes.byref(label))
+        if ierr != 0: raise ENtoolkitError(self, ierr)
+        return label.value.decode(self.charset)
+
+    def ENgetpremise(self, index, permiselindex):
+        """Gets the properties of a premise in a rule-based control.
+        Arguments:
+	            index	the rule's index (starting from 1).
+	            premiseIndex	the position of the premise in the rule's list of premises (starting from 1).
+        [out]	logop	the premise's logical operator ( IF = 1, AND = 2, OR = 3 ).
+        [out]	object	the type of object the premise refers to (see EN_RuleObject).
+        [out]	objIndex	the index of the object (e.g. the index of a tank).
+        [out]	variable	the object's variable being compared (see EN_RuleVariable).
+        [out]	relop	the premise's comparison operator (see EN_RuleOperator).
+        [out]	status	the status that the object's status is compared to (see EN_RuleStatus).
+        [out]	value	the value that the object's variable is compared to. """
+
+        j1 = ctypes.c_int()
+        j2 = ctypes.c_int()
+        j3 = ctypes.c_int()
+        j4 = ctypes.c_int()
+        j5 = ctypes.c_int()
+        j6 = ctypes.c_int()
+        j7 = ctypes.c_double()
+        ierr = self._lib.EN_getpremise(self.ph, index, permiselindex, ctypes.byref(j1), ctypes.byref(j2),
+                                       ctypes.byref(j3),
+                                       ctypes.byref(j4), ctypes.byref(j5), ctypes.byref(j6), ctypes.byref(j7))
+        if ierr != 0: raise ENtoolkitError(self, ierr)
+        return j1.value, j2.value, j3.value, j4.value, j5.value, j6.value, j7.value
+
+    def ENsetpremise(self, index, premiseIndex, logop, object, objindex, variable, relop, status, value):
+        """Sets the properties of a premise in a rule-based control.
+
+        Arguments:
+            index	        the rule's index (starting from 1).
+            premiseIndex	the position of the premise in the rule's list of premises.
+            logop	        the premise's logical operator ( IF = 1, AND = 2, OR = 3 ).
+            object	        the type of object the premise refers to (see EN_RuleObject).
+            objIndex	    the index of the object (e.g. the index of a tank).
+            variable	    the object's variable being compared (see EN_RuleVariable).
+            relop	        the premise's comparison operator (see EN_RuleOperator).
+            status	        the status that the object's status is compared to (see EN_RuleStatus).
+            value	        the value that the object's variable is compared to. """
+
+        ierr = self._lib.EN_setpremise(self.ph, ctypes.c_int(index), ctypes.c_int(premiseIndex),
+                                       ctypes.c_int(logop), ctypes.c_int(object), ctypes.c_int(objindex),
+                                       ctypes.c_int(variable), ctypes.c_int(relop), ctypes.c_int(status),
+                                       ctypes.c_float(value))
+        if ierr != 0: raise ENtoolkitError(self, ierr)
+
+    def ENgetthenaction(self, index, actionIndex):
+        """Retrieves the properties of a THEN action in a rule-based control.
+        Arguments:
+        index: the rule's index (starting from 1).
+        actionIndex:the index of the THEN action to retrieve (starting from 1).
+
+        [out] linkIndex: the index of the link in the action(starting from 1).
+        [out] status: the status assigned to the link(see EN_RuleStatus)
+        [out] setting: the value assigned to the link's setting."""
+
+        j1 = ctypes.c_int()
+        j2 = ctypes.c_int()
+        j3 = ctypes.c_double()
+        ierr = self._lib.EN_getthenaction(self.ph, index, actionIndex, ctypes.byref(j1), ctypes.byref(j2),
+                                          ctypes.byref(j3))
+        if ierr != 0: raise ENtoolkitError(self, ierr)
+        return j1.value, j2.value, j3.value
+
+    def ENgetelseaction(self, index, actionIndex):
+        """Retrieves the properties of a ELSE action in a rule-based control.
+        Arguments:
+        index: the rule's index (starting from 1).
+        actionIndex:the index of the ELSE action to retrieve (starting from 1).
+
+        [out] linkIndex: the index of the link in the action(starting from 1).
+        [out] status: the status assigned to the link(see EN_RuleStatus)
+        [out] setting: the value assigned to the link's setting."""
+
+        j1 = ctypes.c_int()
+        j2 = ctypes.c_int()
+        j3 = ctypes.c_double()
+        ierr = self._lib.EN_getelseaction(self.ph, index, actionIndex, ctypes.byref(j1), ctypes.byref(j2),
+                                          ctypes.byref(j3))
+        if ierr != 0: raise ENtoolkitError(self, ierr)
+        return j1.value, j2.value, j3.value
+
+    def ENsetelseaction(self, index, actionIndex, linkindex, status, setting):
+        """Sets the properties of an ELSE action in a rule-based control.
+
+        Arguments:
+            index	        the rule's index (starting from 1).
+            actionIndex  	the index of the ELSE action being modified (starting from 1).
+            linkindex	    the index of the link in the action (starting from 1).
+            status	        the new status assigned to the link (see EN_RuleStatus) .
+            setting	        the new value assigned to the link's setting. """
+
+        ierr = self._lib.EN_setelseaction(self.ph, ctypes.c_int(index), ctypes.c_int(actionIndex),
+                                          ctypes.c_int(linkindex), ctypes.c_int(status), ctypes.c_double(setting))
+        if ierr != 0: raise ENtoolkitError(self, ierr)
+
+    def ENsetpremiseindex(self, index, premiseIndex, objindex):
+        """Sets the index of an object in a premise of a rule-based control.
+
+        Arguments:
+            index	        the rule's index (starting from 1).
+            premiseIndex	the premise's index (starting from 1).
+            objIndex	    the index of the object (e.g. the index of a tank)."""
+
+        ierr = self._lib.EN_setpremiseindex(self.ph, ctypes.c_int(index), ctypes.c_int(premiseIndex),
+                                            ctypes.c_int(objindex))
+        if ierr != 0: raise ENtoolkitError(self, ierr)
+
+    def ENsetpremisestatus(self, index, premiseIndex, status):
+        """Sets the status being compared to in a premise of a rule-based control.
+
+        Arguments:
+            index	        the rule's index (starting from 1).
+            premiseIndex	the premise's index (starting from 1).
+            status  	    the status that the premise's object status is compared to (see EN_RuleStatus). """
+
+        ierr = self._lib.EN_setpremisestatus(self.ph, ctypes.c_int(index), ctypes.c_int(premiseIndex),
+                                             ctypes.c_int(status))
+        if ierr != 0: raise ENtoolkitError(self, ierr)
+
+    def ENsetpremisevalue(self, index, premiseIndex, value):
+        """Sets the value in a premise of a rule-based control.
+
+        Arguments:
+            index	        the rule's index (starting from 1).
+            premiseIndex	the premise's index (starting from 1).
+            value  	        The value that the premise's variable is compared to. """
+
+        ierr = self._lib.EN_setpremisevalue(self.ph, ctypes.c_int(index), ctypes.c_int(premiseIndex),
+                                            ctypes.c_double(value))
+        if ierr != 0: raise ENtoolkitError(self, ierr)
+
+    def ENsetrulepriority(self, index, priority):
+        """Sets the priority of a rule-based control.
+
+        Arguments:
+            index	        the rule's index (starting from 1).
+            priority	    the priority value assigned to the rule."""
+
+        ierr = self._lib.EN_setrulepriority(self.ph, ctypes.c_int(index), ctypes.c_double(priority))
+        if ierr != 0: raise ENtoolkitError(self, ierr)
+
+    def ENsetthenaction(self, index, actionIndex, linkindex, status, setting):
+        """Sets the properties of a THEN action in a rule-based control.
+
+        Arguments:
+            index	        the rule's index (starting from 1).
+            actionIndex  	the index of the THEN action being modified (starting from 1).
+            linkindex	    the index of the link in the action (starting from 1).
+            status	        the new status assigned to the link (see EN_RuleStatus) .
+            setting	        the new value assigned to the link's setting. """
+
+        ierr = self._lib.EN_setthenaction(self.ph, ctypes.c_int(index), ctypes.c_int(actionIndex),
+                                          ctypes.c_int(linkindex), ctypes.c_int(status), ctypes.c_double(setting))
+        if ierr != 0: raise ENtoolkitError(self, ierr)
+
 
     def ENgetoption(self, optioncode):
         """Retrieves the value of a particular analysis option.
