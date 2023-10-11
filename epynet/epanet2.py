@@ -405,7 +405,7 @@ class EPANET2(object):
                                 ctypes.c_int(nindex), ctypes.c_float(level) )
         if ierr!=0: raise ENtoolkitError(self, ierr)
 
-        def ENaddrule(self, rule):
+     def ENaddrule(self, rule):
         """Adds a new rule-based control to a project.
         Arguments:
                 rule: text of the rule following the format used in an EPANET input file. """
