@@ -6,7 +6,7 @@ from .curve import Curve
 class Link(BaseObject):
     """ EPANET Link Class """
 
-    properties = {'flow': epanet2.EN_FLOW,'quality': epanet2.EN_QUALITY}
+    properties = {'flow': epanet2.EN_FLOW,'quality': epanet2.EN_LINKQUAL}
 
     def __init__(self, uid, network):
         super(Link, self).__init__(uid, network)
@@ -70,7 +70,7 @@ class Pipe(Link):
     static_properties = {'diameter': epanet2.EN_DIAMETER, 'length': epanet2.EN_LENGTH,
                          'roughness': epanet2.EN_ROUGHNESS, 'minorloss': epanet2.EN_MINORLOSS,
                          'initstatus': epanet2.EN_INITSTATUS, 'status': epanet2.EN_STATUS}
-    properties = {'flow': epanet2.EN_FLOW, 'headloss': epanet2.EN_HEADLOSS, 'velocity': epanet2.EN_VELOCITY,'quality': epanet2.EN_QUALITY}
+    properties = {'flow': epanet2.EN_FLOW, 'headloss': epanet2.EN_HEADLOSS, 'velocity': epanet2.EN_VELOCITY,'quality': epanet2.EN_LINKQUAL}
 
     @lazy_property
     def check_valve(self):
@@ -84,7 +84,7 @@ class Pump(Link):
 
     static_properties = {'length': epanet2.EN_LENGTH, 'initstatus': epanet2.EN_INITSTATUS, 
                          'speed': epanet2.EN_INITSETTING}
-    properties = {'flow': epanet2.EN_FLOW, 'energy': epanet2.EN_ENERGY,'quality': epanet2.EN_QUALITY}
+    properties = {'flow': epanet2.EN_FLOW, 'energy': epanet2.EN_ENERGY,'quality': epanet2.EN_LINKQUAL}
 
     @property
     def velocity(self):
@@ -119,7 +119,7 @@ class Valve(Link):
 
     static_properties = {'setting': epanet2.EN_INITSETTING, 'initstatus': epanet2.EN_INITSTATUS,
                          'diameter': epanet2.EN_DIAMETER}
-    properties = {'velocity': epanet2.EN_VELOCITY, 'flow': epanet2.EN_FLOW,'quality': epanet2.EN_QUALITY}
+    properties = {'velocity': epanet2.EN_VELOCITY, 'flow': epanet2.EN_FLOW,'quality': epanet2.EN_LINKQUAL}
 
     link_type = 'valve'
 
