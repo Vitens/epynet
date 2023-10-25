@@ -50,17 +50,20 @@ class EPANET2(object):
 
         self._max_label_len = 32
         self._err_max_char = 80
-# Project Functions
+
+    # Project Functions
 
     def ENclose(self):
         """! Closes a project and frees all of its memory."""
         ierr = self._lib.EN_close(self.ph)
-        if ierr != 0: raise ENtoolkitError(self, ierr)
+        if ierr != 0:
+            raise ENtoolkitError(self, ierr)
 
     def ENdeleteproject(self):
         """! Closes down the Toolkit system (including all files being processed)"""
         ierr = self._lib.EN_deleteproject(ctypes.byref(self.ph))
-        if ierr != 0: raise ENtoolkitError(self, ierr)
+        if ierr != 0:
+            raise ENtoolkitError(self, ierr)
 
     def ENgetcount(self, countcode):
         """Retrieves the number of network components of a specified type.
@@ -74,13 +77,15 @@ class EPANET2(object):
                                   EN_CONTROLCOUNT"""
         j = ctypes.c_int()
         ierr = self._lib.EN_getcount(self.ph, countcode, ctypes.byref(j))
-        if ierr != 0: raise ENtoolkitError(self, ierr)
+        if ierr != 0:
+            raise ENtoolkitError(self, ierr)
         return j.value
 
     def ENinit(self, rptfile, binfile, units_code, headloss_code):
         ierr = self._lib.EN_init(self.ph, ctypes.c_char_p(rptfile), ctypes.c_char_p(binfile), ctypes.c_int(units_code),
                                  ctypes.c_int(headloss_code))
-        if ierr != 0: raise ENtoolkitError(self, ierr)
+        if ierr != 0:
+            raise ENtoolkitError(self, ierr)
 
     def ENopen(self, nomeinp, nomerpt='', nomebin=''):
         """Opens the Toolkit to analyze a particular distribution system
@@ -110,38 +115,44 @@ class EPANET2(object):
         else:
             callback = None
         ierr = self._lib.EN_runproject(self.ph, ctypes.c_char_p(nomeinp.encode()),
-                                   ctypes.c_char_p(nomerpt.encode()),
-                                   ctypes.c_char_p(nomebin.encode()),
-                                   callback)
-        if ierr != 0: raise ENtoolkitError(self, ierr)
+                                       ctypes.c_char_p(nomerpt.encode()),
+                                       ctypes.c_char_p(nomebin.encode()),
+                                       callback)
+        if ierr != 0:
+            raise ENtoolkitError(self, ierr)
 
     def ENsaveinpfile(self, fname):
         """Writes all current network input data to a file
         using the format of an EPANET input file."""
         ierr = self._lib.EN_saveinpfile(self.ph, ctypes.c_char_p(fname.encode()))
-        if ierr != 0: raise ENtoolkitError(self, ierr)
+        if ierr != 0:
+            raise ENtoolkitError(self, ierr)
 
     # Hydraulic Analysis Functions
 
     def ENcloseH(self):
         """Closes the hydraulic analysis system, freeing all allocated memory."""
         ierr = self._lib.EN_closeH(self.ph)
-        if ierr != 0: raise ENtoolkitError(self, ierr)
+        if ierr != 0:
+            raise ENtoolkitError(self, ierr)
 
     def ENinitH(self, flag=None):
-            """Initializes storage tank levels, link status and settings,
+        """Initializes storage tank levels, link status and settings,
             and the simulation clock time prior
             to running a hydraulic analysis.
 
             flag  EN_NOSAVE [+EN_SAVE] [+EN_INITFLOW] """
-            ierr = self._lib.EN_initH(self.ph, flag)
-            if ierr != 0: raise ENtoolkitError(self, ierr)
+        ierr = self._lib.EN_initH(self.ph, flag)
+        if ierr != 0:
+            raise ENtoolkitError(self, ierr)
+
     def ENnextH(self):
         """Determines the length of time until the next hydraulic event occurs in an extended period
            simulation."""
         _deltat = ctypes.c_long()
         ierr = self._lib.EN_nextH(self.ph, ctypes.byref(_deltat))
-        if ierr != 0: raise ENtoolkitError(self, ierr)
+        if ierr != 0:
+            raise ENtoolkitError(self, ierr)
         return _deltat.value
 
     def ENopenH(self):
@@ -149,14 +160,14 @@ class EPANET2(object):
         ierr = self._lib.EN_openH(self.ph, )
 
     def ENrunH(self):
-            """Runs a single period hydraulic analysis,
+        """Runs a single period hydraulic analysis,
             retrieving the current simulation clock time t"""
-            ierr = self._lib.EN_runH(self.ph, ctypes.byref(self._current_simulation_time))
-            if ierr >= 100:
-                raise ENtoolkitError(self, ierr)
-            elif ierr > 0:
-                warnings.warn(self.ENgeterror(ierr))
-                return self.ENgeterror(ierr)
+        ierr = self._lib.EN_runH(self.ph, ctypes.byref(self._current_simulation_time))
+        if ierr >= 100:
+            raise ENtoolkitError(self, ierr)
+        elif ierr > 0:
+            warnings.warn(self.ENgeterror(ierr))
+            return self.ENgeterror(ierr)
 
     def ENsaveH(self):
         """Transfers results of a hydraulic simulation
@@ -164,7 +175,8 @@ class EPANET2(object):
         Output file, where results are only reported at
         uniform reporting intervals."""
         ierr = self._lib.EN_saveH(self.ph, )
-        if ierr != 0: raise ENtoolkitError(self, ierr)
+        if ierr != 0:
+            raise ENtoolkitError(self, ierr)
 
     def ENsavehydfile(self, fname):
         """Saves the current contents of the binary hydraulics file to a file.
@@ -174,14 +186,17 @@ class EPANET2(object):
         Use this function to save the current set of hydraulics results to a file, either for post-processing
         or to be used at a later time by calling the EN_usehydfile function.
 
-        The hydraulics file contains nodal demands and heads and link flows, status, and settings for all hydraulic time steps,
+        The hydraulics file contains nodal demands and heads and link flows, status, and settings for all hydraulic time
+        steps,
         even intermediate ones.
 
         Before calling this function hydraulic results must have been generated and saved by having called EN_solveH or
-        the EN_initH - EN_runH - EN_nextH sequence with the initflag argument of EN_initH set to EN_SAVE or EN_SAVE_AND_INIT.
+        the EN_initH - EN_runH - EN_nextH sequence with the initflag argument of EN_initH set to EN_SAVE or
+        EN_SAVE_AND_INIT.
         """
         ierr = self._lib.EN_savehydfile(self.ph, ctypes.c_char_p(fname.encode()))
-        if ierr != 0: raise ENtoolkitError(self, ierr)
+        if ierr != 0:
+            raise ENtoolkitError(self, ierr)
 
     def ENsolveH(self):
         """Runs a complete hydraulic simulation with results
@@ -196,7 +211,8 @@ class EPANET2(object):
         at intermediate time periods and directly adjust link status and control settings as a simulation proceeds.
         """
         ierr = self._lib.EN_solveH(self.ph, )
-        if ierr != 0: raise ENtoolkitError(self, ierr)
+        if ierr != 0:
+            raise ENtoolkitError(self, ierr)
 
     def ENusehydfile(self, fname):
         """Uses the contents of the specified file as the current binary hydraulics file
@@ -204,15 +220,17 @@ class EPANET2(object):
         ARGUMENTS:
             fname	the name of the binary file containing hydraulic results."""
         ierr = self._lib.EN_usehydfile(self.ph, ctypes.c_char_p(fname.encode()))
-        if ierr != 0: raise ENtoolkitError(self, ierr)
+        if ierr != 0:
+            raise ENtoolkitError(self, ierr)
 
-# Water Quality Analysis Functions
+    # Water Quality Analysis Functions
 
     def ENcloseQ(self):
         """Closes the water quality analysis system,
         freeing all allocated memory."""
         ierr = self._lib.EN_closeQ(self.ph)
-        if ierr != 0: raise ENtoolkitError(self, ierr)
+        if ierr != 0:
+            raise ENtoolkitError(self, ierr)
 
     def ENinitQ(self, flag=None):
         """Initializes water quality and the simulation clock
@@ -220,14 +238,16 @@ class EPANET2(object):
 
         flag  EN_NOSAVE | EN_SAVE """
         ierr = self._lib.EN_initQ(self.ph, flag)
-        if ierr != 0: raise ENtoolkitError(self, ierr)
+        if ierr != 0:
+            raise ENtoolkitError(self, ierr)
 
     def ENnextQ(self):
         """Advances the water quality simulation
         to the start of the next hydraulic time period."""
         _deltat = ctypes.c_long()
         ierr = self._lib.EN_nextQ(self.ph, ctypes.byref(_deltat))
-        if ierr != 0: raise ENtoolkitError(self, ierr)
+        if ierr != 0:
+            raise ENtoolkitError(self, ierr)
         return _deltat.value
 
     def ENopenQ(self):
@@ -248,14 +268,16 @@ class EPANET2(object):
         """Runs a complete water quality simulation with results
         at uniform reporting intervals written to EPANET's binary Output file."""
         ierr = self._lib.EN_solveQ(self.ph, )
-        if ierr != 0: raise ENtoolkitError(self, ierr)
+        if ierr != 0:
+            raise ENtoolkitError(self, ierr)
 
     def ENstepQ(self):
         """Advances the water quality simulation one water quality time step.
         The time remaining in the overall simulation is returned in tleft."""
         tleft = ctypes.c_long()
         ierr = self._lib.EN_nextQ(self.ph, ctypes.byref(tleft))
-        if ierr != 0: raise ENtoolkitError(self, ierr)
+        if ierr != 0:
+            raise ENtoolkitError(self, ierr)
         return tleft.value
 
     def ENsetqualtype(self, qualcode, chemname, chemunits, tracenode):
@@ -270,9 +292,10 @@ class EPANET2(object):
                                         ctypes.c_char_p(chemname.encode(self.charset)),
                                         ctypes.c_char_p(chemunits.encode(self.charset)),
                                         ctypes.c_char_p(tracenode.encode(self.charset)))
-        if ierr != 0: raise ENtoolkitError(self, ierr)
+        if ierr != 0:
+            raise ENtoolkitError(self, ierr)
 
-# Reporting Functions
+    # Reporting Functions
 
     def ENgeterror(self, errcode):
         """Retrieves the text of the message associated with a particular error or warning code."""
@@ -284,14 +307,16 @@ class EPANET2(object):
         """Retrieves the current version number of the Toolkit."""
         j = ctypes.c_int()
         ierr = self._lib.EN_getversion(self.ph, ctypes.byref(j))
-        if ierr != 0: raise ENtoolkitError(self, ierr)
+        if ierr != 0:
+            raise ENtoolkitError(self, ierr)
         return j.value
 
     def ENreport(self):
         """Writes a formatted text report on simulation results
         to the Report file."""
         ierr = self._lib.EN_report(self.ph, )
-        if ierr != 0: raise ENtoolkitError(self, ierr)
+        if ierr != 0:
+            raise ENtoolkitError(self, ierr)
 
     def ENsetreport(self, command):
         """Issues a report formatting command.
@@ -299,7 +324,8 @@ class EPANET2(object):
         Formatting commands are the same as used in the
         [REPORT] section of the EPANET Input file."""
         ierr = self._lib.EN_setreport(self.ph, ctypes.c_char_p(command.encode(self.charset)))
-        if ierr != 0: raise ENtoolkitError(self, ierr)
+        if ierr != 0:
+            raise ENtoolkitError(self, ierr)
 
     def ENresetreport(self):
         """Clears any report formatting commands
@@ -308,7 +334,8 @@ class EPANET2(object):
         EPANET Input file or were issued with the
         ENsetreport function"""
         ierr = self._lib.EN_resetreport(self.ph, )
-        if ierr != 0: raise ENtoolkitError(self, ierr)
+        if ierr != 0:
+            raise ENtoolkitError(self, ierr)
 
     def ENsetstatusreport(self, statuslevel):
         """Sets the level of hydraulic status reporting.
@@ -318,7 +345,8 @@ class EPANET2(object):
                       1 - normal reporting
                       2 - full status reporting"""
         ierr = self._lib.EN_setstatusreport(self.ph, ctypes.c_int(statuslevel))
-        if ierr != 0: raise ENtoolkitError(self, ierr)
+        if ierr != 0:
+            raise ENtoolkitError(self, ierr)
 
     def ENwriteline(self, line):
         """Writes a line of text to the EPANET report file.
@@ -326,15 +354,17 @@ class EPANET2(object):
           Arguments:
             line:	a text string to write """
         ierr = self._lib.EN_writeline(self.ph, ctypes.c_char_p(line.encode(self.charset)))
-        if ierr != 0: raise ENtoolkitError(self, ierr)
+        if ierr != 0:
+            raise ENtoolkitError(self, ierr)
 
-# Analysis Options Functions
+    # Analysis Options Functions
 
     def ENgetflowunits(self):
         """Retrieves a code number indicating the units used to express all flow rates."""
         j = ctypes.c_int()
         ierr = self._lib.EN_getflowunits(self.ph, ctypes.byref(j))
-        if ierr != 0: raise ENtoolkitError(self, ierr)
+        if ierr != 0:
+            raise ENtoolkitError(self, ierr)
         return j.value
 
     def ENgetoption(self, optioncode):
@@ -348,7 +378,8 @@ class EPANET2(object):
                     EN_DEMANDMULT"""
         j = ctypes.c_float()
         ierr = self._lib.EN_getoption(self.ph, optioncode, ctypes.byref(j))
-        if ierr != 0: raise ENtoolkitError(self, ierr)
+        if ierr != 0:
+            raise ENtoolkitError(self, ierr)
         return j.value
 
     def ENgetqualinfo(self):
@@ -360,16 +391,18 @@ class EPANET2(object):
             [out]	traceNode	    index of the node being traced (if applicable). """
 
         out_qualType = ctypes.c_int()
-        out_chemName = ctypes.c_char_p()
-        out_chemUnits = ctypes.c_char_p()
+        out_chemName = ctypes.c_char()
+        out_chemUnits = ctypes.c_char()
         out_traceNode = ctypes.c_int()
 
-        ierr = self._lib.EN_getqualinfo(self.ph,ctypes.byref(out_qualType),ctypes.byref(out_chemName),
-                                        ctypes.byref(out_chemUnits),ctypes.byref(out_traceNode))
+        ierr = self._lib.EN_getqualinfo(self.ph, ctypes.byref(out_qualType), ctypes.byref(out_chemName),
+                                        ctypes.byref(out_chemUnits), ctypes.byref(out_traceNode))
+        if ierr != 0:
+            raise ENtoolkitError(self, ierr)
+        return (out_qualType.value, out_chemName.value.decode(self.charset), out_chemUnits.value.decode(self.charset),
+                out_traceNode.value)
 
-        return out_qualType.value, out_chemName.value, out_chemUnits.value, out_traceNode.value
-
-    def ENgetqualtype(self, qualcode):
+    def ENgetqualtype(self):
         """Retrieves the type of water quality analysis called for
         returns  qualcode: Water quality analysis codes are as follows:
                            EN_NONE	0 No quality analysis
@@ -383,7 +416,8 @@ class EPANET2(object):
         tracenode = ctypes.c_int()
         ierr = self._lib.EN_getqualtype(self.ph, ctypes.byref(qualcode),
                                         ctypes.byref(tracenode))
-        if ierr != 0: raise ENtoolkitError(self, ierr)
+        if ierr != 0:
+            raise ENtoolkitError(self, ierr)
         return qualcode.value, tracenode.value
 
     def ENgettimeparam(self, paramcode):
@@ -401,10 +435,11 @@ class EPANET2(object):
                    EN_PERIODS"""
         j = ctypes.c_int()
         ierr = self._lib.EN_gettimeparam(self.ph, paramcode, ctypes.byref(j))
-        if ierr != 0: raise ENtoolkitError(self, ierr)
+        if ierr != 0:
+            raise ENtoolkitError(self, ierr)
         return j.value
 
-    def ENsetflowunits(self,units):
+    def ENsetflowunits(self, units):
 
         """ Sets a project's flow units.
         units: a flow units code
@@ -421,7 +456,8 @@ class EPANET2(object):
                    10 = EN_CMS: "m3/s"
         """
         ierr = self._lib.EN_setflowunits(self.ph, ctypes.c_int(units))
-        if ierr != 0: raise ENtoolkitError(self, ierr)
+        if ierr != 0:
+            raise ENtoolkitError(self, ierr)
 
     def ENsetoption(self, optioncode, value):
         """Sets the value of a particular analysis option.
@@ -434,7 +470,8 @@ class EPANET2(object):
                                   EN_DEMANDMULT
           value:  option value"""
         ierr = self._lib.EN_setoption(self.ph, ctypes.c_int(optioncode), ctypes.c_float(value))
-        if ierr != 0: raise ENtoolkitError(self, ierr)
+        if ierr != 0:
+            raise ENtoolkitError(self, ierr)
 
     def ENsettimeparam(self, paramcode, timevalue):
         """Sets the value of a time parameter.
@@ -464,20 +501,23 @@ class EPANET2(object):
                           EN_MAXIMUM  maximums
                           EN_RANGE    ranges"""
         ierr = self._lib.EN_settimeparam(self.ph, ctypes.c_int(paramcode), ctypes.c_int(timevalue))
-        if ierr != 0: raise ENtoolkitError(self, ierr)
+        if ierr != 0:
+            raise ENtoolkitError(self, ierr)
 
-# Network Node Functions
+    # Network Node Functions
 
     def ENdeletenode(self, node_index, conditional=0):
         ierr = self._lib.EN_deletenode(self.ph, ctypes.c_int(node_index), ctypes.c_int(conditional))
-        if ierr != 0: raise ENtoolkitError(self, ierr)
+        if ierr != 0:
+            raise ENtoolkitError(self, ierr)
 
     def ENaddnode(self, node_id, node_type_code):
         index = ctypes.c_int()
 
         ierr = self._lib.EN_addnode(self.ph, ctypes.c_char_p(node_id.encode(self.charset)),
                                     ctypes.c_int(node_type_code), ctypes.byref(index))
-        if ierr != 0: raise ENtoolkitError(self, ierr)
+        if ierr != 0:
+            raise ENtoolkitError(self, ierr)
 
         return index
 
@@ -489,7 +529,8 @@ class EPANET2(object):
         x = ctypes.c_float()
         y = ctypes.c_float()
         ierr = self._lib.EN_getcoord(self.ph, index, ctypes.byref(x), ctypes.byref(y))
-        if ierr != 0: raise ENtoolkitError(self, ierr)
+        if ierr != 0:
+            raise ENtoolkitError(self, ierr)
         return (x.value, y.value)
 
     def ENgetnodeid(self, index):
@@ -499,7 +540,8 @@ class EPANET2(object):
         index: node index"""
         label = ctypes.create_string_buffer(self._max_label_len)
         ierr = self._lib.EN_getnodeid(self.ph, index, ctypes.byref(label))
-        if ierr != 0: raise ENtoolkitError(self, ierr)
+        if ierr != 0:
+            raise ENtoolkitError(self, ierr)
         return label.value.decode(self.charset)
 
     def ENgetnodeindex(self, nodeid):
@@ -509,7 +551,8 @@ class EPANET2(object):
         nodeid: node ID label"""
         j = ctypes.c_int()
         ierr = self._lib.EN_getnodeindex(self.ph, ctypes.c_char_p(nodeid.encode(self.charset)), ctypes.byref(j))
-        if ierr != 0: raise ENtoolkitError(self, ierr)
+        if ierr != 0:
+            raise ENtoolkitError(self, ierr)
         return j.value
 
     def ENgetnodetype(self, index):
@@ -519,7 +562,8 @@ class EPANET2(object):
         index: node index"""
         j = ctypes.c_int()
         ierr = self._lib.EN_getnodetype(self.ph, index, ctypes.byref(j))
-        if ierr != 0: raise ENtoolkitError(self, ierr)
+        if ierr != 0:
+            raise ENtoolkitError(self, ierr)
         return j.value
 
     def ENgetnodevalue(self, index, paramcode):
@@ -558,14 +602,16 @@ class EPANET2(object):
                       EN_TANK_KBULK  Bulk reaction rate coefficient"""
         j = ctypes.c_float()
         ierr = self._lib.EN_getnodevalue(self.ph, index, paramcode, ctypes.byref(j))
-        if ierr != 0: raise ENtoolkitError(self, ierr)
+        if ierr != 0:
+            raise ENtoolkitError(self, ierr)
         return j.value
 
     def ENsetcoord(self, index, x, y):
         ierr = self._lib.EN_setcoord(self.ph, ctypes.c_int(index),
                                      ctypes.c_float(x),
                                      ctypes.c_float(y))
-        if ierr != 0: raise ENtoolkitError(self, ierr)
+        if ierr != 0:
+            raise ENtoolkitError(self, ierr)
 
     def ENsetnodevalue(self, index, paramcode, value):
         """Sets the value of a parameter for a specific node.
@@ -592,21 +638,44 @@ class EPANET2(object):
                       EN_TANK_KBULK    Bulk reaction rate coefficient
         value:parameter value"""
         ierr = self._lib.EN_setnodevalue(self.ph, ctypes.c_int(index), ctypes.c_int(paramcode), ctypes.c_float(value))
-        if ierr != 0: raise ENtoolkitError(self, ierr)
+        if ierr != 0:
+            raise ENtoolkitError(self, ierr)
 
-     # Nodal Demand Functions
+    def ENsettankdata(self, index, elev, initlvl, minlvl, maxlvl, diam, minvol, volcur):
+        """Sets a group of properties for a tank node.
+        Arguments:
+            Parameters
+                    index	 : a tank node's index (starting from 1).
+                    elev	 : the tank's bottom elevation.
+                    initlvl	 : the initial water level in the tank.
+                    minlvl	 : the minimum water level for the tank.
+                    maxlvl	 : the maximum water level for the tank.
+                    diam	 : the tank's diameter (0 if a volume curve is supplied).
+                    minvol	 : the volume of the tank at its minimum water level.
+                    volcur : the name of the tank's volume curve ("" for no curve)
 
-    def ENdeletedemand(self,index,demandindex):
+        """
+        ierr = self._lib.EN_settankdata(self.ph, ctypes.c_int(index), ctypes.c_float(elev), ctypes.c_float(initlvl)
+                                        , ctypes.c_float(minlvl), ctypes.c_float(maxlvl), ctypes.c_float(diam),
+                                        ctypes.c_float(minvol)
+                                        , ctypes.c_char_p(volcur.encode(self.charset)))
+        if ierr != 0:
+            raise ENtoolkitError(self, ierr)
+
+    # Nodal Demand Functions
+
+    def ENdeletedemand(self, index, demandindex):
         """ deletes a demand from a junction node.
         Arguments:
         index:  he index of a node (starting from 1).
         demandindex : the position of the demand in the node's demands list (starting from 1).
         """
 
-        ierr = self.lib.EN_deletedemand(self.ph,ctypes.c_int(index),ctypes.c_int(demandindex))
-        if ierr != 0: raise ENtoolkitError(self, ierr)
+        ierr = self._lib.EN_deletedemand(self.ph, ctypes.c_int(index), ctypes.c_int(demandindex))
+        if ierr != 0:
+            raise ENtoolkitError(self, ierr)
 
-    def ENgetbasedemand(self,index,demandindex):
+    def ENgetbasedemand(self, index, demandindex):
         """ Gets the base demand for one of a node's demand categories.
                 Arguments:
                 index: a node's index (starting from 1).
@@ -614,10 +683,11 @@ class EPANET2(object):
                 """
         label = ctypes.create_string_buffer(self._max_label_len)
         ierr = self._lib.EN_getbasedemand(self.ph, ctypes.c_int(index), ctypes.c_int(demandindex))
-        if ierr != 0: raise ENtoolkitError(self, ierr)
+        if ierr != 0:
+            raise ENtoolkitError(self, ierr)
         return label.value.decode(self.charset)
 
-    def ENgetdemandname(self,index,demandindex):
+    def ENgetdemandname(self, index, demandindex):
         """Retrieves the name of a node's demand category.
 
         Arguments:
@@ -626,33 +696,36 @@ class EPANET2(object):
         """
 
         label = ctypes.create_string_buffer(self._max_label_len)
-        ierr = self._lib.EN_getdemandname(self.ph, index, demandindex,ctypes.byref(label))
-        if ierr != 0: raise ENtoolkitError(self, ierr)
+        ierr = self._lib.EN_getdemandname(self.ph, index, demandindex, ctypes.byref(label))
+        if ierr != 0:
+            raise ENtoolkitError(self, ierr)
         return label.value.decode(self.charset)
 
-    def ENgetnumdemands(self,index):
+    def ENgetnumdemands(self, index):
 
         """Retrieves the number of demand categories for a junction node.
 
         Arguments:
         index: node index"""
 
-        j= ctypes.c_int()
-        ierr= self._lib.EN_getnumdemands(self.ph, index, ctypes.byref(j))
-        if ierr!=0: raise ENtoolkitError(self, ierr)
+        j = ctypes.c_int()
+        ierr = self._lib.EN_getnumdemands(self.ph, index, ctypes.byref(j))
+        if ierr != 0:
+            raise ENtoolkitError(self, ierr)
         return j.value
 
-
-# Network Link Functions
+    # Network Link Functions
 
     def ENdeletelink(self, link_index, conditional=0):
         ierr = self._lib.EN_deletelink(self.ph, ctypes.c_int(link_index), ctypes.c_int(conditional))
-        if ierr != 0: raise ENtoolkitError(self, ierr)
+        if ierr != 0:
+            raise ENtoolkitError(self, ierr)
 
     def ENgetheadcurveindex(self, pump_index):
         j = ctypes.c_int()
         ierr = self._lib.EN_getheadcurveindex(self.ph, ctypes.c_int(pump_index), ctypes.byref(j))
-        if ierr != 0: raise ENtoolkitError(self, ierr)
+        if ierr != 0:
+            raise ENtoolkitError(self, ierr)
         return j.value
 
     def ENgetlinkid(self, index):
@@ -662,7 +735,8 @@ class EPANET2(object):
         index: link index"""
         label = ctypes.create_string_buffer(self._max_label_len)
         ierr = self._lib.EN_getlinkid(self.ph, index, ctypes.byref(label))
-        if ierr != 0: raise ENtoolkitError(self, ierr)
+        if ierr != 0:
+            raise ENtoolkitError(self, ierr)
         return label.value.decode(self.charset)
 
     def ENgetlinknodes(self, index):
@@ -673,7 +747,8 @@ class EPANET2(object):
         j1 = ctypes.c_int()
         j2 = ctypes.c_int()
         ierr = self._lib.EN_getlinknodes(self.ph, index, ctypes.byref(j1), ctypes.byref(j2))
-        if ierr != 0: raise ENtoolkitError(self, ierr)
+        if ierr != 0:
+            raise ENtoolkitError(self, ierr)
         return j1.value, j2.value
 
     def ENgetlinktype(self, index):
@@ -683,7 +758,8 @@ class EPANET2(object):
         index: link index"""
         j = ctypes.c_int()
         ierr = self._lib.EN_getlinktype(self.ph, index, ctypes.byref(j))
-        if ierr != 0: raise ENtoolkitError(self, ierr)
+        if ierr != 0:
+            raise ENtoolkitError(self, ierr)
         return j.value
 
     def ENgetlinkvalue(self, index, paramcode):
@@ -709,7 +785,8 @@ class EPANET2(object):
                        * computed values"""
         j = ctypes.c_float()
         ierr = self._lib.EN_getlinkvalue(self.ph, index, paramcode, ctypes.byref(j))
-        if ierr != 0: raise ENtoolkitError(self, ierr)
+        if ierr != 0:
+            raise ENtoolkitError(self, ierr)
         return j.value
 
     def ENgetlinkindex(self, linkid):
@@ -719,12 +796,14 @@ class EPANET2(object):
         linkid: link ID label"""
         j = ctypes.c_int()
         ierr = self._lib.EN_getlinkindex(self.ph, ctypes.c_char_p(linkid.encode(self.charset)), ctypes.byref(j))
-        if ierr != 0: raise ENtoolkitError(self, ierr)
+        if ierr != 0:
+            raise ENtoolkitError(self, ierr)
         return j.value
 
     def ENsetheadcurveindex(self, pump_index, curve_index):
         ierr = self._lib.EN_setheadcurveindex(self.ph, ctypes.c_int(pump_index), ctypes.c_int(curve_index))
-        if ierr != 0: raise ENtoolkitError(self, ierr)
+        if ierr != 0:
+            raise ENtoolkitError(self, ierr)
 
     def ENaddlink(self, link_id, link_type_code, from_node_id, to_node_id):
 
@@ -733,7 +812,8 @@ class EPANET2(object):
         ierr = self._lib.EN_addlink(self.ph, ctypes.c_char_p(link_id.encode(self.charset)),
                                     ctypes.c_int(link_type_code), ctypes.c_char_p(from_node_id.encode(self.charset)),
                                     ctypes.c_char_p(to_node_id.encode(self.charset)), ctypes.byref(index))
-        if ierr != 0: raise ENtoolkitError(self, ierr)
+        if ierr != 0:
+            raise ENtoolkitError(self, ierr)
 
     def ENsetlinktype(self, indexLink, linkType):
         """ Changes link type.
@@ -778,12 +858,12 @@ class EPANET2(object):
         ierr = self._lib.EN_setlinkvalue(self.ph, ctypes.c_int(index),
                                          ctypes.c_int(paramcode),
                                          ctypes.c_float(value))
-        if ierr != 0: raise ENtoolkitError(self, ierr)
-
+        if ierr != 0:
+            raise ENtoolkitError(self, ierr)
 
     # Time Pattern Functions.
 
-    def ENdeletepattern(self,index):
+    def ENdeletepattern(self, index):
         """Deletes a time pattern from a project.
 
         Arguments:
@@ -791,20 +871,22 @@ class EPANET2(object):
 
         label = ctypes.create_string_buffer(self._max_label_len)
         ierr = self._lib.EN_deletepattern(self.ph, index, ctypes.byref(label))
-        if ierr != 0: raise ENtoolkitError(self, ierr)
+        if ierr != 0:
+            raise ENtoolkitError(self, ierr)
         return label.value.decode(self.charset)
 
     def ENgetaveragepatternvalue(self, index):
-            """Retrieves the average of all pattern factors in a time pattern.
+        """Retrieves the average of all pattern factors in a time pattern.
 
                         Arguments:
                         index	a time pattern index (starting from 1).
                         [out]	value	The average of all of the time pattern's factors."""
 
-            j = ctypes.c_int()
-            ierr = self._lib.EN_getaveragepatternvalue(self.ph, index, ctypes.byref(j))
-            if ierr != 0: raise ENtoolkitError(self, ierr)
-            return j.value
+        j = ctypes.c_int()
+        ierr = self._lib.EN_getaveragepatternvalue(self.ph, index, ctypes.byref(j))
+        if ierr != 0:
+            raise ENtoolkitError(self, ierr)
+        return j.value
 
     def ENgetpatternid(self, index):
         """Retrieves the ID label of a particular time pattern.
@@ -813,7 +895,8 @@ class EPANET2(object):
         index: pattern index"""
         label = ctypes.create_string_buffer(self._max_label_len)
         ierr = self._lib.EN_getpatternid(self.ph, index, ctypes.byref(label))
-        if ierr != 0: raise ENtoolkitError(self, ierr)
+        if ierr != 0:
+            raise ENtoolkitError(self, ierr)
         return label.value.decode(self.charset)
 
     def ENgetpatternindex(self, patternid):
@@ -823,7 +906,8 @@ class EPANET2(object):
         id: pattern ID label"""
         j = ctypes.c_int()
         ierr = self._lib.EN_getpatternindex(self.ph, ctypes.c_char_p(patternid.encode(self.charset)), ctypes.byref(j))
-        if ierr != 0: raise ENtoolkitError(self, ierr)
+        if ierr != 0:
+            raise ENtoolkitError(self, ierr)
         return j.value
 
     def ENgetpatternlen(self, index):
@@ -833,7 +917,8 @@ class EPANET2(object):
         index:pattern index"""
         j = ctypes.c_int()
         ierr = self._lib.EN_getpatternlen(self.ph, index, ctypes.byref(j))
-        if ierr != 0: raise ENtoolkitError(self, ierr)
+        if ierr != 0:
+            raise ENtoolkitError(self, ierr)
         return j.value
 
     def ENgetpatternvalue(self, index, period):
@@ -844,7 +929,8 @@ class EPANET2(object):
         period: period within time pattern"""
         j = ctypes.c_float()
         ierr = self._lib.EN_getpatternvalue(self.ph, index, period, ctypes.byref(j))
-        if ierr != 0: raise ENtoolkitError(self, ierr)
+        if ierr != 0:
+            raise ENtoolkitError(self, ierr)
         return j.value
 
     def ENaddpattern(self, patternid):
@@ -853,7 +939,8 @@ class EPANET2(object):
                 patternid: ID label of pattern"""
 
         ierr = self._lib.EN_addpattern(self.ph, ctypes.c_char_p(patternid.encode(self.charset)))
-        if ierr != 0: raise ENtoolkitError(self, ierr)
+        if ierr != 0:
+            raise ENtoolkitError(self, ierr)
 
     def ENsetpattern(self, index, factors):
         """Sets all of the multiplier factors for a specific time pattern.
@@ -861,14 +948,14 @@ class EPANET2(object):
         index:    time pattern index
         factors:  multiplier factors list for the entire pattern"""
 
-
         nfactors = len(factors)
         cfactors_type = ctypes.c_float * nfactors
         cfactors = cfactors_type()
         for i in range(nfactors):
             cfactors[i] = float(factors[i])
         ierr = self._lib.EN_setpattern(self.ph, ctypes.c_int(index), cfactors, ctypes.c_int(nfactors))
-        if ierr != 0: raise ENtoolkitError(self, ierr)
+        if ierr != 0:
+            raise ENtoolkitError(self, ierr)
 
     def ENsetpatternvalue(self, index, period, value):
         """Sets the multiplier factor for a specific period within a time pattern.
@@ -880,9 +967,10 @@ class EPANET2(object):
         ierr = self._lib.EN_setpatternvalue(self.ph, ctypes.c_int(index),
                                             ctypes.c_int(period),
                                             ctypes.c_float(value))
-        if ierr != 0: raise ENtoolkitError(self, ierr)
+        if ierr != 0:
+            raise ENtoolkitError(self, ierr)
 
-# Data Curve Functions
+    # Data Curve Functions
 
     def ENdeletecurve(self, index):
         """Deletes a data curve from a project.
@@ -891,7 +979,8 @@ class EPANET2(object):
                 index: the data curve's index (starting from 1).  """
 
         ierr = self._lib.EN_deletecurve(self.ph, ctypes.c_int(index))
-        if ierr != 0: raise ENtoolkitError(self, ierr)
+        if ierr != 0:
+            raise ENtoolkitError(self, ierr)
 
     def ENgetcurve(self, curveIndex):
         curveid = ctypes.create_string_buffer(self._max_label_len)
@@ -906,7 +995,8 @@ class EPANET2(object):
                                      )
         # strange behavior of ENgetcurve: it returns also curveID
         # better split in two distinct functions ....
-        if ierr != 0: raise ENtoolkitError(self, ierr)
+        if ierr != 0:
+            raise ENtoolkitError(self, ierr)
         curve = []
         for i in range(nValues.value):
             curve.append((xValues[i], yValues[i]))
@@ -926,33 +1016,37 @@ class EPANET2(object):
                                      yValues)
         # strange behavior of ENgetcurve: it returns also curveID
         # better split in two distinct functions ....
-        if ierr != 0: raise ENtoolkitError(self, ierr)
+        if ierr != 0:
+            raise ENtoolkitError(self, ierr)
         return curveid.value.decode(self.charset)
 
     def ENgetcurveindex(self, curveId):
         j = ctypes.c_int()
         ierr = self._lib.EN_getcurveindex(self.ph, ctypes.c_char_p(curveId.encode(self.charset)), ctypes.byref(j))
-        if ierr != 0: raise ENtoolkitError(self, ierr)
+        if ierr != 0:
+            raise ENtoolkitError(self, ierr)
         return j.value
 
     def ENgetcurvelen(self, curveIndex):
         j = ctypes.c_int()
         ierr = self._lib.EN_getcurvelen(self.ph, ctypes.c_int(curveIndex), ctypes.byref(j))
-        if ierr != 0: raise ENtoolkitError(self, ierr)
+        if ierr != 0:
+            raise ENtoolkitError(self, ierr)
         return j.value
 
-    def ENgetcurvetype(self,curveIndex):
+    def ENgetcurvetype(self, curveIndex):
         """Arguments:
         curveIndex: Types of data curves
-        EN_VOLUME_CURVE  = 0
-        EN_PUMP_CURVE    = 1
-        EN_EFFIC_CURVE   = 2
-        EN_HLOSS_CURVE   = 3
-        EN_GENERIC_CURVE = 4  """
+                    EN_VOLUME_CURVE  = 0
+                    EN_PUMP_CURVE    = 1
+                    EN_EFFIC_CURVE   = 2
+                    EN_HLOSS_CURVE   = 3
+                    EN_GENERIC_CURVE = 4  """
 
-        j= ctypes.c_int()
-        ierr= self._lib.EN_getcurvetype(self.ph, curveIndex, ctypes.byref(j))
-        if ierr!=0: raise ENtoolkitError(self, ierr)
+        j = ctypes.c_int()
+        ierr = self._lib.EN_getcurvetype(self.ph, curveIndex, ctypes.byref(j))
+        if ierr != 0:
+            raise ENtoolkitError(self, ierr)
         return j.value
 
     def ENgetcurvevalue(self, curveIndex, point):
@@ -960,7 +1054,8 @@ class EPANET2(object):
         y = ctypes.c_float()
         ierr = self._lib.EN_getcurvevalue(self.ph, ctypes.c_int(curveIndex), ctypes.c_int(point - 1), ctypes.byref(x),
                                           ctypes.byref(y))
-        if ierr != 0: raise ENtoolkitError(self, ierr)
+        if ierr != 0:
+            raise ENtoolkitError(self, ierr)
         return x.value, y.value
 
     def ENsetcurve(self, curveIndex, values):
@@ -973,19 +1068,21 @@ class EPANET2(object):
             yValues[i] = float(values[i][1])
 
         ierr = self._lib.EN_setcurve(self.ph, curveIndex, xValues, yValues, nValues)
-        if ierr != 0: raise ENtoolkitError(self, ierr)
+        if ierr != 0:
+            raise ENtoolkitError(self, ierr)
 
-    def ENsetcurvetype(self,curve_index,curve_type):
+    def ENsetcurvetype(self, curve_index, curve_type):
         """Sets a curve's type.
         ARGUMENTS:
         curve_index	a curve's index (starting from 1).
         curve_type	the curve's type (see EN_CurveType). """
 
         ierr = self._lib.EN_setcurvetype(self.ph, ctypes.c_int(curve_index), ctypes.c_int(curve_type))
-        if ierr != 0: raise ENtoolkitError(self, ierr)
+        if ierr != 0:
+            raise ENtoolkitError(self, ierr)
 
-        def ENsetcurvevalue(self, curve_index, point_index, x, y):
-            """Sets the value of a single data point for a curve.
+    def ENsetcurvevalue(self, curve_index, point_index, x, y):
+        """Sets the value of a single data point for a curve.
 
             ARGUMENTS:
                     curve_Index	a curve's index (starting from 1).
@@ -993,17 +1090,19 @@ class EPANET2(object):
                     x	the point's new x-value.
                     y	the point's new y-value.   """
 
-            ierr = self._lib.EN_setcurvevalue(self.ph, ctypes.c_int(curve_index), ctypes.c_int(point_index),
+        ierr = self._lib.EN_setcurvevalue(self.ph, ctypes.c_int(curve_index), ctypes.c_int(point_index),
                                               ctypes.c_float(x), ctypes.c_float(y))
-            if ierr != 0: raise ENtoolkitError(self, ierr)
+        if ierr != 0:
+            raise ENtoolkitError(self, ierr)
 
     def ENaddcurve(self, curve_id):
         ierr = self._lib.EN_addcurve(self.ph, ctypes.c_char_p(curve_id.encode(self.charset)))
-        if ierr != 0: raise ENtoolkitError(self, ierr)
+        if ierr != 0:
+            raise ENtoolkitError(self, ierr)
 
-# Simple Control Functions
+    # Simple Control Functions
 
-    def ENaddcontrol(self, ctype, lindex, setting, nindex, level ):
+    def ENaddcontrol(self, ctype, lindex, setting, nindex, level):
         """Sets the parameters of a simple control statement.
         Arguments:
            ctype:   control type code  EN_LOWLEVEL   (Low Level Control)
@@ -1015,12 +1114,13 @@ class EPANET2(object):
            nindex:  index of controlling node
            level:   value of controlling water level or pressure for level controls
                     or of time of control action (in seconds) for time-based controls"""
-        #int ENsetcontrol(int cindex, int* ctype, int* lindex, float* setting, int* nindex, float* level )
+        # int ENsetcontrol(int cindex, int* ctype, int* lindex, float* setting, int* nindex, float* level )
         cindex = ctypes.c_int()
-        ierr= self._lib.EN_addcontrol(self.ph, ctypes.c_int(ctype),
-                                ctypes.c_int(lindex), ctypes.c_float(setting),
-                                ctypes.c_int(nindex), ctypes.c_double(level), ctypes.byref(cindex))
-        if ierr!=0: raise ENtoolkitError(self, ierr)
+        ierr = self._lib.EN_addcontrol(self.ph, ctypes.c_int(ctype),
+                                       ctypes.c_int(lindex), ctypes.c_float(setting),
+                                       ctypes.c_int(nindex), ctypes.c_double(level), ctypes.byref(cindex))
+        if ierr != 0:
+            raise ENtoolkitError(self, ierr)
         return cindex
 
     def ENdeletecontrol(self, index):
@@ -1030,7 +1130,8 @@ class EPANET2(object):
                 index: The index of the control to delete (starting from 1). """
 
         ierr = self._lib.EN_deletecontrol(self.ph, ctypes.c_int(index))
-        if ierr != 0: raise ENtoolkitError(self, ierr)
+        if ierr != 0:
+            raise ENtoolkitError(self, ierr)
 
     def ENgetcontrol(self, cindex):  # <------------
         """Retrieves the parameters of a simple control statement.
@@ -1056,27 +1157,30 @@ class EPANET2(object):
         ierr = self._lib.EN_getcontrol(self.ph, ctypes.c_int(cindex), ctypes.byref(type_), ctypes.byref(lindex),
                                        ctypes.byref(setting), ctypes.byref(nindex), ctypes.byref(level),
                                        ctypes.byref(level))  # <------------
-        if ierr != 0: raise ENtoolkitError(self, ierr)
+        if ierr != 0:
+            raise ENtoolkitError(self, ierr)
         return type_.value, lindex.value, setting.value, nindex.value, level.value  # <------------
 
     def ENsetcontrol(self, cindex, ctype, lindex, setting, nindex, level):
         """Sets the parameters of a simple control statement.
-        Arguments:
-           cindex:  control statement index
-           ctype:   control type code  EN_LOWLEVEL   (Low Level Control)
-                                       EN_HILEVEL    (High Level Control)
-                                       EN_TIMER      (Timer Control)
-                                       EN_TIMEOFDAY  (Time-of-Day Control)
-           lindex:  index of link being controlled
-           setting: value of the control setting
-           nindex:  index of controlling node
-           level:   value of controlling water level or pressure for level controls
-                    or of time of control action (in seconds) for time-based controls"""
+           Arguments:
+                    cindex  :   control statement index
+                    ctype  :    control type code   EN_LOWLEVEL   (Low Level Control)
+                                                    EN_HILEVEL    (High Level Control)
+                                                    EN_TIMER      (Timer Control)
+                                                    EN_TIMEOFDAY  (Time-of-Day Control)
+                    lindex  :   index of link being controlled
+                    setting :   value of the control setting
+                    nindex  :   index of controlling node
+                    level   :   value of controlling water level or pressure for level controls
+                                or of time of control action (in seconds) for time-based controls
+        """
         # int ENsetcontrol(int cindex, int* ctype, int* lindex, float* setting, int* nindex, float* level )
-        ierr = self._lib.EN_addcontrol(self.ph, ctypes.c_int(cindex), ctypes.c_int(ctype),
+        ierr = self._lib.EN_setcontrol(self.ph, ctypes.c_int(cindex), ctypes.c_int(ctype),
                                        ctypes.c_int(lindex), ctypes.c_float(setting),
                                        ctypes.c_int(nindex), ctypes.c_float(level))
-        if ierr != 0: raise ENtoolkitError(self, ierr)
+        if ierr != 0:
+            raise ENtoolkitError(self, ierr)
 
     # Rule-Based Control Functions
 
@@ -1086,24 +1190,27 @@ class EPANET2(object):
                 rule: text of the rule following the format used in an EPANET input file. """
 
         ierr = self._lib.EN_addrule(self.ph, ctypes.c_char_p(rule.encode(self.charset)))
-        if ierr != 0: raise ENtoolkitError(self, ierr)
+        if ierr != 0:
+            raise ENtoolkitError(self, ierr)
 
     def ENdeleterule(self, index):
         """Deletes an existing rule-based control.
         Arguments:
-                index: he index of the rule to be deleted (starting from 1) """
+                index: the index of the rule to be deleted (starting from 1) """
 
         ierr = self._lib.EN_deleterule(self.ph, ctypes.c_int(index))
-        if ierr != 0: raise ENtoolkitError(self, ierr)
+        if ierr != 0:
+            raise ENtoolkitError(self, ierr)
 
     def ENgetrule(self, index):
         """Retrieves the index of a particular rule.
-        Arguments:
-        	    index: the rule's index (starting from 1).
-        [out]	nPremises: number of premises in the rule's IF section.
-        [out]	nThenActions:number of actions in the rule's THEN section.
-        [out]	nElseActions: number of actions in the rule's ELSE section.
-        [out]	priority: the rule's priority value. """
+        	Arguments:
+        			index			:	the rule's index (starting from 1).
+        	[out]	nPremises		:	number of premises in the rule's IF section.
+        	[out]	nThenActions	:	number of actions in the rule's THEN section.
+        	[out]	nElseActions	:	number of actions in the rule's ELSE section.
+        	[out]	priority		:	the rule's priority value.
+        	"""
 
         j1 = ctypes.c_int()
         j2 = ctypes.c_int()
@@ -1111,7 +1218,8 @@ class EPANET2(object):
         j4 = ctypes.c_float()
         ierr = self._lib.EN_getrule(self.ph, index, ctypes.byref(j1), ctypes.byref(j2), ctypes.byref(j3),
                                     ctypes.byref(j4))
-        if ierr != 0: raise ENtoolkitError(self, ierr)
+        if ierr != 0:
+            raise ENtoolkitError(self, ierr)
         return j1.value, j2.value, j3.value, j4.value
 
     def ENgetruleid(self, index):
@@ -1122,21 +1230,23 @@ class EPANET2(object):
 
         label = ctypes.create_string_buffer(self._max_label_len)
         ierr = self._lib.EN_getruleID(self.ph, index, ctypes.byref(label))
-        if ierr != 0: raise ENtoolkitError(self, ierr)
+        if ierr != 0:
+            raise ENtoolkitError(self, ierr)
         return label.value.decode(self.charset)
 
-    def ENgetpremise(self, index, permiselindex):
+    def ENgetpremise(self, index, permiseIndex):
         """Gets the properties of a premise in a rule-based control.
-        Arguments:
-	            index	the rule's index (starting from 1).
-	            premiseIndex	the position of the premise in the rule's list of premises (starting from 1).
-        [out]	logop	the premise's logical operator ( IF = 1, AND = 2, OR = 3 ).
-        [out]	object	the type of object the premise refers to (see EN_RuleObject).
-        [out]	objIndex	the index of the object (e.g. the index of a tank).
-        [out]	variable	the object's variable being compared (see EN_RuleVariable).
-        [out]	relop	the premise's comparison operator (see EN_RuleOperator).
-        [out]	status	the status that the object's status is compared to (see EN_RuleStatus).
-        [out]	value	the value that the object's variable is compared to. """
+           Arguments:
+                    index   :	the rule's index (starting from 1)
+                    premiseIndex:	the position of the premise in the rule's list of premises (starting from 1).
+            [out]	logop		:	the premise's logical operator ( IF = 1, AND = 2, OR = 3 ).
+            [out]	object		:	the type of object the premise refers to (see EN_RuleObject).
+            [out]	objIndex	:	the index of the object (e.g. the index of a tank).
+            [out]	variable	:	the object's variable being compared (see EN_RuleVariable).
+            [out]	relop		:	the premise's comparison operator (see EN_RuleOperator).
+            [out]	status		:	the status that the object's status is compared to (see EN_RuleStatus).
+            [out]	value		:	the value that the object's variable is compared to.
+        """
 
         j1 = ctypes.c_int()
         j2 = ctypes.c_int()
@@ -1145,10 +1255,11 @@ class EPANET2(object):
         j5 = ctypes.c_int()
         j6 = ctypes.c_int()
         j7 = ctypes.c_double()
-        ierr = self._lib.EN_getpremise(self.ph, index, permiselindex, ctypes.byref(j1), ctypes.byref(j2),
+        ierr = self._lib.EN_getpremise(self.ph, index, permiseIndex, ctypes.byref(j1), ctypes.byref(j2),
                                        ctypes.byref(j3),
                                        ctypes.byref(j4), ctypes.byref(j5), ctypes.byref(j6), ctypes.byref(j7))
-        if ierr != 0: raise ENtoolkitError(self, ierr)
+        if ierr != 0:
+            raise ENtoolkitError(self, ierr)
         return j1.value, j2.value, j3.value, j4.value, j5.value, j6.value, j7.value
 
     def ENsetpremise(self, index, premiseIndex, logop, object, objindex, variable, relop, status, value):
@@ -1169,7 +1280,8 @@ class EPANET2(object):
                                        ctypes.c_int(logop), ctypes.c_int(object), ctypes.c_int(objindex),
                                        ctypes.c_int(variable), ctypes.c_int(relop), ctypes.c_int(status),
                                        ctypes.c_float(value))
-        if ierr != 0: raise ENtoolkitError(self, ierr)
+        if ierr != 0:
+            raise ENtoolkitError(self, ierr)
 
     def ENgetthenaction(self, index, actionIndex):
         """Retrieves the properties of a THEN action in a rule-based control.
@@ -1186,7 +1298,8 @@ class EPANET2(object):
         j3 = ctypes.c_double()
         ierr = self._lib.EN_getthenaction(self.ph, index, actionIndex, ctypes.byref(j1), ctypes.byref(j2),
                                           ctypes.byref(j3))
-        if ierr != 0: raise ENtoolkitError(self, ierr)
+        if ierr != 0:
+            raise ENtoolkitError(self, ierr)
         return j1.value, j2.value, j3.value
 
     def ENgetelseaction(self, index, actionIndex):
@@ -1204,7 +1317,8 @@ class EPANET2(object):
         j3 = ctypes.c_double()
         ierr = self._lib.EN_getelseaction(self.ph, index, actionIndex, ctypes.byref(j1), ctypes.byref(j2),
                                           ctypes.byref(j3))
-        if ierr != 0: raise ENtoolkitError(self, ierr)
+        if ierr != 0:
+            raise ENtoolkitError(self, ierr)
         return j1.value, j2.value, j3.value
 
     def ENsetelseaction(self, index, actionIndex, linkindex, status, setting):
@@ -1219,7 +1333,8 @@ class EPANET2(object):
 
         ierr = self._lib.EN_setelseaction(self.ph, ctypes.c_int(index), ctypes.c_int(actionIndex),
                                           ctypes.c_int(linkindex), ctypes.c_int(status), ctypes.c_double(setting))
-        if ierr != 0: raise ENtoolkitError(self, ierr)
+        if ierr != 0:
+            raise ENtoolkitError(self, ierr)
 
     def ENsetpremiseindex(self, index, premiseIndex, objindex):
         """Sets the index of an object in a premise of a rule-based control.
@@ -1231,7 +1346,8 @@ class EPANET2(object):
 
         ierr = self._lib.EN_setpremiseindex(self.ph, ctypes.c_int(index), ctypes.c_int(premiseIndex),
                                             ctypes.c_int(objindex))
-        if ierr != 0: raise ENtoolkitError(self, ierr)
+        if ierr != 0:
+            raise ENtoolkitError(self, ierr)
 
     def ENsetpremisestatus(self, index, premiseIndex, status):
         """Sets the status being compared to in a premise of a rule-based control.
@@ -1243,7 +1359,8 @@ class EPANET2(object):
 
         ierr = self._lib.EN_setpremisestatus(self.ph, ctypes.c_int(index), ctypes.c_int(premiseIndex),
                                              ctypes.c_int(status))
-        if ierr != 0: raise ENtoolkitError(self, ierr)
+        if ierr != 0:
+            raise ENtoolkitError(self, ierr)
 
     def ENsetpremisevalue(self, index, premiseIndex, value):
         """Sets the value in a premise of a rule-based control.
@@ -1255,7 +1372,8 @@ class EPANET2(object):
 
         ierr = self._lib.EN_setpremisevalue(self.ph, ctypes.c_int(index), ctypes.c_int(premiseIndex),
                                             ctypes.c_double(value))
-        if ierr != 0: raise ENtoolkitError(self, ierr)
+        if ierr != 0:
+            raise ENtoolkitError(self, ierr)
 
     def ENsetrulepriority(self, index, priority):
         """Sets the priority of a rule-based control.
@@ -1265,7 +1383,8 @@ class EPANET2(object):
             priority	    the priority value assigned to the rule."""
 
         ierr = self._lib.EN_setrulepriority(self.ph, ctypes.c_int(index), ctypes.c_double(priority))
-        if ierr != 0: raise ENtoolkitError(self, ierr)
+        if ierr != 0:
+            raise ENtoolkitError(self, ierr)
 
     def ENsetthenaction(self, index, actionIndex, linkindex, status, setting):
         """Sets the properties of a THEN action in a rule-based control.
@@ -1279,9 +1398,10 @@ class EPANET2(object):
 
         ierr = self._lib.EN_setthenaction(self.ph, ctypes.c_int(index), ctypes.c_int(actionIndex),
                                           ctypes.c_int(linkindex), ctypes.c_int(status), ctypes.c_double(setting))
-        if ierr != 0: raise ENtoolkitError(self, ierr)
+        if ierr != 0:
+            raise ENtoolkitError(self, ierr)
 
-# miscellaneous
+    # miscellaneous
 
     def ENgetcomment(self, object_type, index):
         """Retrieves the comment of an object with a object type and index
@@ -1292,7 +1412,8 @@ class EPANET2(object):
         """
         label = ctypes.create_string_buffer(1024)
         ierr = self._lib.EN_getcomment(self.ph, object_type, index, ctypes.byref(label))
-        if ierr != 0: raise ENtoolkitError(self, ierr)
+        if ierr != 0:
+            raise ENtoolkitError(self, ierr)
         return label.value.decode(self.charset)
 
     def ENsetcomment(self, object_type, index, comment):
@@ -1303,14 +1424,12 @@ class EPANET2(object):
         index: object index
         """
         ierr = self._lib.EN_setcomment(self.ph, object_type, index, ctypes.c_char_p(comment.encode(self.charset)))
-        if ierr != 0: raise ENtoolkitError(self, ierr)
-
-
+        if ierr != 0:
+            raise ENtoolkitError(self, ierr)
 
     def ENsimtime(self):
         """retrieves the current simulation time t as datetime.timedelta instance"""
         return datetime.timedelta(seconds=self._current_simulation_time.value)
-
 
 
 # Enumerated Types
@@ -1362,12 +1481,12 @@ EN_SETTING = 12
 EN_ENERGY = 13
 EN_LINKQUAL = 14
 EN_LINKPATTERN = 15
-EN_PUMP_STATE  = 16
+EN_PUMP_STATE = 16
 EN_PUMP_EFFIC = 17
 EN_PUMP_POWER = 18
 EN_PUMP_HCURVE = 19
 EN_PUMP_ECURVE = 20
-EN_PUMP_ECOST  = 21
+EN_PUMP_ECOST = 21
 EN_PUMP_EPAT = 22
 EN_LINK_INCONTROL = 23
 EN_GPV_CURVE = 24
@@ -1396,7 +1515,7 @@ EN_LINKCOUNT = 2
 EN_PATCOUNT = 3
 EN_CURVECOUNT = 4
 EN_CONTROLCOUNT = 5
-EN_RULECOUNT  = 6
+EN_RULECOUNT = 6
 
 EN_JUNCTION = 0  # /* Node types */
 EN_RESERVOIR = 1
@@ -1435,7 +1554,7 @@ EN_CMH = 8
 EN_CMD = 9
 EN_CMS = 10
 
-EN_HW = 0 # /* Headloss type */
+EN_HW = 0  # /* Headloss type */
 EN_DW = 1
 EN_CM = 2
 
@@ -1472,7 +1591,7 @@ EN_HILEVEL = 1
 EN_TIMER = 2
 EN_TIMEOFDAY = 3
 
-EN_SERIES = 0 # /* Time statistic types.    */
+EN_SERIES = 0  # /* Time statistic types.    */
 EN_AVERAGE = 1
 EN_MINIMUM = 2
 EN_MAXIMUM = 3
@@ -1484,7 +1603,7 @@ EN_FIFO = 2
 EN_LIFO = 3
 
 EN_NOSAVE = 0  # /* Save-results-to-file flag */
-EN_SAVE   = 1
+EN_SAVE = 1
 EN_INITFLOW = 3
 EN_SAVE_AND_INIT = 4
 
@@ -1502,49 +1621,50 @@ FlowUnits = {EN_CFS: "cfs",
              EN_CMD: "ML/d",
              EN_CMS: "m3/s"}
 
-EN_R_NODE      = 0 # / *Network objects used in rule-based controls. */
-EN_R_LINK      = 1
-EN_R_SYSTEM    = 2
+EN_R_NODE = 0  # / *Network objects used in rule-based controls. */
+EN_R_LINK = 1
+EN_R_SYSTEM = 2
 
-EN_R_EQ    = 0 # / *Comparison operators used in rule-based controls. */
-EN_R_NE    = 1
-EN_R_LE    = 2
-EN_R_GE    = 3
-EN_R_LT    = 4
-EN_R_GT    = 5
-EN_R_IS    = 6
-EN_R_NOT   = 7
+EN_R_EQ = 0  # / *Comparison operators used in rule-based controls. */
+EN_R_NE = 1
+EN_R_LE = 2
+EN_R_GE = 3
+EN_R_LT = 4
+EN_R_GT = 5
+EN_R_IS = 6
+EN_R_NOT = 7
 EN_R_BELOW = 8
 EN_R_ABOVE = 9
 
-N_R_IS_OPEN     = 0 # / *Link status codes used in rule-based controls. */
-EN_R_IS_CLOSED  = 1
-EN_R_IS_ACTIVE  = 2
+N_R_IS_OPEN = 0  # / *Link status codes used in rule-based controls. */
+EN_R_IS_CLOSED = 1
+EN_R_IS_ACTIVE = 2
 
-EN_R_DEMAND 	 = 0 # / *Object variables used in rule-based controls. */
-EN_R_HEAD 	     = 1
-EN_R_GRADE 	     = 2
-EN_R_LEVEL 	     = 3
-EN_R_PRESSURE 	 = 4
-EN_R_FLOW 	     = 5
-EN_R_STATUS 	 = 6
-EN_R_SETTING 	 = 7
-EN_R_POWER 	     = 8
-EN_R_TIME 	     = 9
-EN_R_CLOCKTIME 	 = 10
-EN_R_FILLTIME 	 = 11
-EN_R_DRAINTIME 	 = 12
+EN_R_DEMAND = 0  # / *Object variables used in rule-based controls. */
+EN_R_HEAD = 1
+EN_R_GRADE = 2
+EN_R_LEVEL = 3
+EN_R_PRESSURE = 4
+EN_R_FLOW = 5
+EN_R_STATUS = 6
+EN_R_SETTING = 7
+EN_R_POWER = 8
+EN_R_TIME = 9
+EN_R_CLOCKTIME = 10
+EN_R_FILLTIME = 11
+EN_R_DRAINTIME = 12
 
-EN_VOLUME_CURVE  = 0 # / *Types of data curves */
-EN_PUMP_CURVE    = 1
-EN_EFFIC_CURVE   = 2
-EN_HLOSS_CURVE   = 3
+EN_VOLUME_CURVE = 0  # / *Types of data curves */
+EN_PUMP_CURVE = 1
+EN_EFFIC_CURVE = 2
+EN_HLOSS_CURVE = 3
 EN_GENERIC_CURVE = 4
 EN_VALVE_CURVE = 5
 
-EN_PSI = 0      # / *Pressure units. */
+EN_PSI = 0  # / *Pressure units. */
 EN_KPA = 1
 EN_METERS = 2
+
 
 class ENtoolkitError(Exception):
     def __init__(self, epanet2, ierr):
