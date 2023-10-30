@@ -18,8 +18,8 @@ class Network(object):
 
         if inputfile:
             self.inputfile = inputfile
-            self.rptfile = self.inputfile[:-3]+"rpt"
-            self.binfile = self.inputfile[:-3]+"bin"
+            self.rptfile = self.inputfile[:-3] + "rpt"
+            self.binfile = self.inputfile[:-3] + "bin"
             self.ep.ENopen(self.inputfile, self.rptfile, self.binfile)
         else:
             self.inputfile = False
@@ -28,9 +28,6 @@ class Network(object):
             self.binfile = ""
 
             self.ep.ENinit(self.rptfile.encode(), self.binfile.encode(), units, headloss)
-
-
-
 
         self.vertices = {}
         # prepare network data
@@ -53,9 +50,11 @@ class Network(object):
         self.load_network()
 
     def load_network(self):
-        """ Load network data """
+        """
+        Load network data
+        """
         # load nodes
-        for index in range(1, self.ep.ENgetcount(epanet2.EN_NODECOUNT)+1):
+        for index in range(1, self.ep.ENgetcount(epanet2.EN_NODECOUNT) + 1):
             # get node type
             node_type = self.ep.ENgetnodetype(index)
             uid = self.ep.ENgetnodeid(index)
@@ -73,9 +72,8 @@ class Network(object):
 
             self.nodes[node.uid] = node
 
-
         # load links
-        for index in range(1, self.ep.ENgetcount(epanet2.EN_LINKCOUNT)+1):
+        for index in range(1, self.ep.ENgetcount(epanet2.EN_LINKCOUNT) + 1):
             link_type = self.ep.ENgetlinktype(index)
             uid = self.ep.ENgetlinkid(index)
             # pipes
@@ -96,15 +94,13 @@ class Network(object):
             link.to_node = self.nodes[self.ep.ENgetnodeid(link_nodes[1])]
             link.to_node.links[link.uid] = link
 
-
-        # load curves 
-
-        for index in range(1, self.ep.ENgetcount(epanet2.EN_CURVECOUNT)+1):
+        # load curves				  
+        for index in range(1, self.ep.ENgetcount(epanet2.EN_CURVECOUNT) + 1):
             uid = self.ep.ENgetcurveid(index)
             self.curves[uid] = Curve(uid, self)
 
         # load patterns
-        for index in range(1, self.ep.ENgetcount(epanet2.EN_PATCOUNT)+1):
+        for index in range(1, self.ep.ENgetcount(epanet2.EN_PATCOUNT) + 1):
             uid = self.ep.ENgetpatternid(index)
             self.patterns[uid] = Pattern(uid, self)
 
@@ -123,7 +119,7 @@ class Network(object):
         node_type = self.ep.ENgetnodetype(index)
 
         for link in list(self.nodes[uid].links):
-            self.delete_link(link.uid);
+            self.delete_link(link.uid)
 
         del self.nodes[uid]
 
@@ -161,8 +157,6 @@ class Network(object):
 
         self.invalidate_nodes()
         self.invalidate_links()
-
-
     def add_reservoir(self, uid, x, y, elevation=0):
 
         self.ep.ENaddnode(uid, epanet2.EN_RESERVOIR)
@@ -197,18 +191,23 @@ class Network(object):
 
         return node
 
-    def add_tank(self, uid, x, y, diameter=0, maxlevel=0, minlevel=0, tanklevel=0):
+    def add_tank(self, uid, x, y, elevation=0, initlevel=1, minlevel=0, maxlevel=1, diameter=35.6824, minvol=0,
+                 volcur=""):
         self.ep.ENaddnode(uid, epanet2.EN_TANK)
+        """ adds a tank with a standard volume of 1000 m3
+         the default values can be adjusted by setting the following parameters:
+                    elevation   : the tank's bottom elevation.
+                    initlevel   : the initial water level in the tank.
+                    minlevel    : the minimum water level for the tank.
+                    maxlevel    : the maximum water level for the tank.
+                    diameter    : the tank's diameter (0 if a volume curve is supplied).
+                    minvol      : the volume of the tank at its minimum water level.
+                    tanklevel   : the name of the tank's volume curve ("" for no curve)
+        """
         index = self.ep.ENgetnodeindex(uid)
         self.ep.ENsetcoord(index, x, y)
+        self.ep.ENsettankdata(index, elevation, initlevel, minlevel, maxlevel, diameter, minvol, volcur)
         node = Tank(uid, self)
-        self.tanks[uid] = node
-        self.nodes[uid] = node
-        # config tank
-        node.diameter = diameter
-        node.maxlevel = maxlevel
-        node.minlevel = minlevel
-        node.tanklevel = tanklevel
 
         self.invalidate_nodes()
 
@@ -299,6 +298,8 @@ class Network(object):
             valve_type_code = epanet2.EN_PRV
         elif valve_type.lower() == "psv":
             valve_type_code = epanet2.EN_PSV
+        elif valve_type.lower() == "pcv":
+            valve_type_code = epanet2.EN_PCV
         else:
             raise ValueError("Unknown Valve Type")
 
@@ -423,8 +424,6 @@ class Network(object):
                     if components[0] not in self.vertices:
                         self.vertices[components[0]] = []
                     self.vertices[components[0]].append((float(components[1]), float(components[2])))
-
-
 
     def close(self):
         print('closing')
