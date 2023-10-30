@@ -8,7 +8,8 @@ class Node(BaseObject):
     """ Base EPANET Node class """
 
     static_properties = {'elevation': epanet2.EN_ELEVATION}
-    properties = {'head': epanet2.EN_HEAD, 'pressure': epanet2.EN_PRESSURE, 'quality': epanet2.EN_QUALITY}
+    properties = {'elevation': epanet2.EN_ELEVATION, 'demand': epanet2.EN_DEMAND, 'head': epanet2.EN_HEAD,
+                  'pressure': epanet2.EN_PRESSURE, 'quality': epanet2.EN_QUALITY}
 
     def __init__(self, uid, network):
         super(Node, self).__init__(uid, network)
@@ -24,14 +25,14 @@ class Node(BaseObject):
 
     def get_object_value(self, code):
         return self.network().ep.ENgetnodevalue(self.index, code)
-    
+
     @property
     def comment(self):
-        return self.network().ep.ENgetcomment(0, self.index) # get comment from NODE table
+        return self.network().ep.ENgetcomment(0, self.index)  # get comment from NODE table
 
     @comment.setter
     def comment(self, value):
-        return self.network().ep.ENsetcomment(0, self.index, value) # set comment from LINK table
+        return self.network().ep.ENsetcomment(0, self.index, value)  # set comment from LINK table
 
     @property
     def index(self):
@@ -68,6 +69,8 @@ class Node(BaseObject):
 
     @lazy_property
     def inflow(self):
+        """ calculates all the water flowing in the node
+        """
         outflow = 0
         for link in self.upstream_links:
             outflow += abs(link.flow)
@@ -75,11 +78,13 @@ class Node(BaseObject):
 
     @lazy_property
     def outflow(self):
+        """ calculates all the water flowing out of the node
+        """
         outflow = 0
         for link in self.downstream_links:
             outflow += abs(link.flow)
         return outflow
-        """ calculates all the water flowing out of the node """
+
 
 class Reservoir(Node):
     """ EPANET Reservoir Class """
@@ -87,8 +92,10 @@ class Reservoir(Node):
 
 class Junction(Node):
     """ EPANET Junction Class """
-    static_properties = {'elevation': epanet2.EN_ELEVATION, 'basedemand': epanet2.EN_BASEDEMAND, 'emitter': epanet2.EN_EMITTER}
-    properties = {'head': epanet2.EN_HEAD, 'pressure': epanet2.EN_PRESSURE, 'demand': epanet2.EN_DEMAND, 'quality': epanet2.EN_QUALITY}
+    static_properties = {'elevation': epanet2.EN_ELEVATION, 'basedemand': epanet2.EN_BASEDEMAND,
+                         'emitter': epanet2.EN_EMITTER}
+    properties = {'head': epanet2.EN_HEAD, 'pressure': epanet2.EN_PRESSURE, 'demand': epanet2.EN_DEMAND,
+                  'quality': epanet2.EN_QUALITY}
     node_type = "Junction"
 
     @property
@@ -116,6 +123,7 @@ class Tank(Node):
     static_properties = {'elevation': epanet2.EN_ELEVATION, 'basedemand': epanet2.EN_BASEDEMAND,
                          'initvolume': epanet2.EN_INITVOLUME, 'diameter': epanet2.EN_TANKDIAM,
                          'minvolume': epanet2.EN_MINVOLUME, 'minlevel': epanet2.EN_MINLEVEL,
-                         'maxlevel': epanet2.EN_MAXLEVEL, 'maxvolume': 25, 'tanklevel': epanet2.EN_TANKLEVEL}
-    properties = {'head': epanet2.EN_HEAD, 'pressure': epanet2.EN_PRESSURE, 
-                  'demand': epanet2.EN_DEMAND, 'volume': 24, 'level': epanet2.EN_TANKLEVEL}
+                         'maxlevel': epanet2.EN_MAXLEVEL, 'maxvolume': epanet2.EN_MAXVOLUME,
+                         'tanklevel': epanet2.EN_TANKLEVEL}
+    properties = {'head': epanet2.EN_HEAD, 'pressure': epanet2.EN_PRESSURE,
+                  'demand': epanet2.EN_DEMAND, 'volume': epanet2.EN_TANKVOLUME, 'level': epanet2.EN_TANKLEVEL}
