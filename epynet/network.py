@@ -1,16 +1,16 @@
 """ EPYNET Classes """
-import atexit
 
 from . import epanet2
-from .objectcollection import ObjectCollection
-from .node import Junction, Tank, Reservoir
-from .link import Pipe, Valve, Pump
 from .curve import Curve
+from .link import Pipe, Valve, Pump
+from .node import Junction, Tank, Reservoir
+from .objectcollection import ObjectCollection
 from .pattern import Pattern
 
 
 class Network(object):
     """ self.epANET Network Simulation Class """
+
     def __init__(self, inputfile=None, units=epanet2.EN_CMH, headloss=epanet2.EN_DW, charset='UTF8'):
 
         # create multithreaded EPANET instance
@@ -54,6 +54,7 @@ class Network(object):
         Load network data
         """
         # load nodes
+        global link
         for index in range(1, self.ep.ENgetcount(epanet2.EN_NODECOUNT) + 1):
             # get node type
             node_type = self.ep.ENgetnodetype(index)
@@ -157,6 +158,7 @@ class Network(object):
 
         self.invalidate_nodes()
         self.invalidate_links()
+
     def add_reservoir(self, uid, x, y, elevation=0):
 
         self.ep.ENaddnode(uid, epanet2.EN_RESERVOIR)
@@ -280,6 +282,20 @@ class Network(object):
         self.patterns[uid] = pattern
 
         return pattern
+
+    def add_valve_gpv(self, uid, from_node, to_node):
+        from_node = from_node if isinstance(from_node, str) else from_node.uid
+        to_node = to_node if isinstance(to_node, str) else to_node.uid
+
+        self.ep.ENaddlink(uid, epanet2.EN_GPV, from_node, to_node)
+        self.ep.ENsetlinkvalue(self.ep.ENgetlinkindex(uid), 25, 1)
+        link = Valve(uid, self)
+        self.valves[uid] = link
+        self.links[uid] = link
+
+        self.invalidate_links()
+
+        return link
 
     def add_valve(self, uid, valve_type, from_node, to_node, diameter=100, setting=0):
 
