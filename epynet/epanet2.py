@@ -644,7 +644,7 @@ class EPANET2(object):
     def ENsettankdata(self, index, elev, initlvl, minlvl, maxlvl, diam, minvol, volcur):
         """Sets a group of properties for a tank node.
         Arguments:
-            Parameters
+
                     index	 : a tank node's index (starting from 1).
                     elev	 : the tank's bottom elevation.
                     initlvl	 : the initial water level in the tank.
@@ -1609,16 +1609,16 @@ EN_SAVE_AND_INIT = 4
 
 EN_INITFLOW = 10  # /* Re-initialize flow flag   */
 
-FlowUnits = {EN_CFS: "cfs",
+FlowUnits = {EN_CFS: "cf/s",
              EN_GPM: "gpm",
-             EN_MGD: "a-f/d",
-             EN_IMGD: "mgd",
-             EN_AFD: "Imgd",
+             EN_MGD: "Mg/d",
+             EN_IMGD: "IMg/d",
+             EN_AFD: "af/d",
              EN_LPS: "L/s",
              EN_LPM: "Lpm",
-             EN_MLD: "m3/h",
-             EN_CMH: "m3/d",
-             EN_CMD: "ML/d",
+             EN_MLD: "ML/D",
+             EN_CMH: "m3/h",
+             EN_CMD: "m3/d",
              EN_CMS: "m3/s"}
 
 EN_R_NODE = 0  # / *Network objects used in rule-based controls. */
