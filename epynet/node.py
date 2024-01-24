@@ -4,6 +4,7 @@ from .objectcollection import ObjectCollection
 from .baseobject import BaseObject, lazy_property
 from .pattern import Pattern
 
+
 class Node(BaseObject):
     """ Base EPANET Node class """
 
@@ -90,6 +91,7 @@ class Reservoir(Node):
     """ EPANET Reservoir Class """
     node_type = "Reservoir"
 
+
 class Junction(Node):
     """ EPANET Junction Class """
     static_properties = {'elevation': epanet2.EN_ELEVATION, 'basedemand': epanet2.EN_BASEDEMAND,
@@ -115,6 +117,7 @@ class Junction(Node):
 
         self.network().solved = False
         self.set_object_value(epanet2.EN_PATTERN, pattern_index)
+
 
 class Tank(Node):
     """ EPANET Tank Class """
