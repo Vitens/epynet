@@ -713,6 +713,43 @@ class EPANET2(object):
         if ierr != 0:
             raise ENtoolkitError(self, ierr)
         return j.value
+    def ENgetdemandmodel(self):
+        """
+        Retrieves the type of demand model in use and its parameters.
+        :returns dm_type: type of demand model (DDA or PDA)
+                 pmin:    pressure below which there is no demand
+                 preq:    pressure required to deliver full demand
+                 pexp:    pressure exponent in demand function
+        """
+        dm_type = ctypes.c_int()
+        pmin = ctypes.c_float()
+        preq = ctypes.c_float()
+        pexp = ctypes.c_float()
+        ierr = self._lib.EN_getdemandmodel(self.ph,
+                                           ctypes.byref(dm_type),
+                                           ctypes.byref(pmin),
+                                           ctypes.byref(preq),
+                                           ctypes.byref(pexp))
+        if ierr != 0:
+            raise ENtoolkitError(self, ierr)
+        return dm_type.value, pmin.value, preq.value, pexp.value
+
+    def ENsetdemandmodel(self, dm_type, pmin, preq, pexp):
+        """
+        Sets the type of demand model to use and its parameters
+        :param dm_type: type of demand model (DDA or PDA)
+        :param pmin: pressure below which there is no demand
+        :param preq: pressure required to deliver full demand
+        :param pexp: pressure exponent in demand function
+        """
+        ierr = self._lib.EN_setdemandmodel(self.ph,
+                                           ctypes.c_int(dm_type),
+                                           ctypes.c_float(pmin),
+                                           ctypes.c_float(preq),
+                                           ctypes.c_float(pexp))
+        if ierr != 0:
+            raise ENtoolkitError(self, ierr)
+
 
     # Network Link Functions
 
@@ -1451,6 +1488,7 @@ EN_SOURCEMASS = 13
 EN_INITVOLUME = 14
 EN_MIXMODEL = 15
 EN_MIXZONEVOL = 16
+
 EN_TANKDIAM = 17
 EN_MINVOLUME = 18
 EN_VOLCURVE = 19
@@ -1606,6 +1644,9 @@ EN_NOSAVE = 0  # /* Save-results-to-file flag */
 EN_SAVE = 1
 EN_INITFLOW = 3
 EN_SAVE_AND_INIT = 4
+
+EN_DDA = 0      # /* Demand model types   */
+EN_PDA = 1
 
 EN_INITFLOW = 10  # /* Re-initialize flow flag   */
 
