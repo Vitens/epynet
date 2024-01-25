@@ -444,3 +444,16 @@ class Network(object):
     def close(self):
         print('closing')
         self.ep.ENdeleteproject()
+
+    def demand_model_summary(self):
+        """
+        Print information related to the current demand model
+        """
+        dm_type, pmin, preq, pexp = self.ep.ENgetdemandmodel()
+        if dm_type == 0:
+            print("Running a demand driven analysis...")
+        else:
+            print("Running a pressure driven analysis...")
+            print("-> Minimum pressure: {:.2f}".format(pmin))
+            print("-> Required pressure: {:.2f}".format(preq))
+            print("-> Exponential pressure: {:.2f}".format(pexp))
