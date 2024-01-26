@@ -123,7 +123,10 @@ class EPANET2(object):
 
     def ENsaveinpfile(self, fname):
         """Writes all current network input data to a file
-        using the format of an EPANET input file."""
+        using the format of an EPANET input file.
+
+         ENsaveinpfile(inpname)
+        """
         ierr = self._lib.EN_saveinpfile(self.ph, ctypes.c_char_p(fname.encode()))
         if ierr != 0:
             raise ENtoolkitError(self, ierr)
@@ -187,8 +190,7 @@ class EPANET2(object):
         or to be used at a later time by calling the EN_usehydfile function.
 
         The hydraulics file contains nodal demands and heads and link flows, status, and settings for all hydraulic time
-        steps,
-        even intermediate ones.
+        steps,even intermediate ones.
 
         Before calling this function hydraulic results must have been generated and saved by having called EN_solveH or
         the EN_initH - EN_runH - EN_nextH sequence with the initflag argument of EN_initH set to EN_SAVE or
@@ -512,6 +514,22 @@ class EPANET2(object):
             raise ENtoolkitError(self, ierr)
 
     def ENaddnode(self, node_id, node_type_code):
+        """ Adds a new node to a project.
+
+        ENaddnode(nodeid, nodetype)
+
+        Parameters:
+        nodeid       the ID name of the node to be added.
+        nodetype     the type of node being added.
+                    0 = junction
+                    1 = reservoir
+                    2 = tank
+
+        Returns:
+        index    the index of the newly added node.
+        See also EN_NodeProperty, NodeType
+        """
+
         index = ctypes.c_int()
 
         ierr = self._lib.EN_addnode(self.ph, ctypes.c_char_p(node_id.encode(self.charset)),
@@ -663,12 +681,34 @@ class EPANET2(object):
             raise ENtoolkitError(self, ierr)
 
     # Nodal Demand Functions
+    def ENadddemand(self, index, baseDemand, demandPattern, demandName):
+        """ Appends a new demand to a junction node demands list.
+
+        ENadddemand(index, baseDemand, demandPattern, demandName)
+
+        Parameters:
+        index            the index of a node (starting from 1).
+        baseDemand       the demand's base value.
+        demandPattern    the name of a time pattern used by the demand.
+        demandName       the name of the demand's category.
+
+            http://wateranalytics.org/EPANET/group___demands.html
+        """
+        ierr = self._lib.EN_adddemand(self.ph, ctypes.c_int(index), ctypes.c_float(baseDemand),
+                                      ctypes.c_char_p(demandPattern.encode(self.charset)),
+                                      ctypes.c_char_p(demandName.encode(self.charset)))
+
+        if ierr != 0:
+            raise ENtoolkitError(self, ierr)
 
     def ENdeletedemand(self, index, demandindex):
         """ deletes a demand from a junction node.
+
+        ENdeletedemand(index, demandIndex)
+
         Arguments:
-        index:  he index of a node (starting from 1).
-        demandindex : the position of the demand in the node's demands list (starting from 1).
+        index:          the index of a node (starting from 1).
+        demandindex :   the position of the demand in the node's demands list (starting from 1).
         """
 
         ierr = self._lib.EN_deletedemand(self.ph, ctypes.c_int(index), ctypes.c_int(demandindex))
@@ -970,12 +1010,18 @@ class EPANET2(object):
             raise ENtoolkitError(self, ierr)
         return j.value
 
-    def ENaddpattern(self, patternid):
+    def ENaddpattern(self, patid):
         """Adds a new time pattern to the network.
-        Arguments:
-                patternid: ID label of pattern"""
 
-        ierr = self._lib.EN_addpattern(self.ph, ctypes.c_char_p(patternid.encode(self.charset)))
+        ENaddpattern(patid)
+
+        Arguments:
+                patid: ID label of pattern
+
+        OWA-EPANET Toolkit: http://wateranalytics.org/EPANET/group___patterns.html
+        """
+
+        ierr = self._lib.EN_addpattern(self.ph, ctypes.c_char_p(patid.encode(self.charset)))
         if ierr != 0:
             raise ENtoolkitError(self, ierr)
 
@@ -1096,25 +1142,34 @@ class EPANET2(object):
         return x.value, y.value
 
     def ENsetcurve(self, curveIndex, values):
+
+        """ Assigns a set of data points to a curve.
+
+        net.ep.ENsetcurve(index,[[x,y],[x,y],[])
+        """
+
         nValues = len(values)
         Values_type = ctypes.c_float * nValues
         xValues = Values_type()
         yValues = Values_type()
         for i in range(nValues):
-            xValues[i] = float(values[i][0])
-            yValues[i] = float(values[i][1])
+           xValues[i] = float(values[i][0])
+           yValues[i] = float(values[i][1])
 
         ierr = self._lib.EN_setcurve(self.ph, curveIndex, xValues, yValues, nValues)
+
         if ierr != 0:
             raise ENtoolkitError(self, ierr)
 
     def ENsetcurvetype(self, curve_index, curve_type):
+
         """Sets a curve's type.
-        ARGUMENTS:
-        curve_index	a curve's index (starting from 1).
-        curve_type	the curve's type (see EN_CurveType). """
+         ARGUMENTS:
+         curve_index	a curve's index (starting from 1).
+         curve_type	the curve's type (see EN_CurveType). """
 
         ierr = self._lib.EN_setcurvetype(self.ph, ctypes.c_int(curve_index), ctypes.c_int(curve_type))
+
         if ierr != 0:
             raise ENtoolkitError(self, ierr)
 
@@ -1133,6 +1188,15 @@ class EPANET2(object):
             raise ENtoolkitError(self, ierr)
 
     def ENaddcurve(self, curve_id):
+        """ Adds a new data curve to a project.
+
+
+        ENaddcurve(cid)
+
+        Parameters:
+        curve_id        The ID name of the curve to be added.
+
+        """
         ierr = self._lib.EN_addcurve(self.ph, ctypes.c_char_p(curve_id.encode(self.charset)))
         if ierr != 0:
             raise ENtoolkitError(self, ierr)
@@ -1223,8 +1287,13 @@ class EPANET2(object):
 
     def ENaddrule(self, rule):
         """Adds a new rule-based control to a project.
+
+         ENaddrule(rule)
+
         Arguments:
-                rule: text of the rule following the format used in an EPANET input file. """
+                rule: text of the rule following the format used in an EPANET input file.
+                OWA-EPANET Toolkit: http://wateranalytics.org/EPANET/group___rules.html
+        """
 
         ierr = self._lib.EN_addrule(self.ph, ctypes.c_char_p(rule.encode(self.charset)))
         if ierr != 0:
@@ -1275,7 +1344,7 @@ class EPANET2(object):
         """Gets the properties of a premise in a rule-based control.
            Arguments:
                     index   :	the rule's index (starting from 1)
-                    premiseIndex:	the position of the premise in the rule's list of premises (starting from 1).
+                    permiseIndex:	the position of the premise in the rule's list of premises (starting from 1).
             [out]	logop		:	the premise's logical operator ( IF = 1, AND = 2, OR = 3 ).
             [out]	object		:	the type of object the premise refers to (see EN_RuleObject).
             [out]	objIndex	:	the index of the object (e.g. the index of a tank).
@@ -1642,13 +1711,11 @@ EN_LIFO = 3
 
 EN_NOSAVE = 0  # /* Save-results-to-file flag */
 EN_SAVE = 1
-EN_INITFLOW = 3
+EN_INITFLOW =10
 EN_SAVE_AND_INIT = 4
 
 EN_DDA = 0      # /* Demand model types   */
 EN_PDA = 1
-
-EN_INITFLOW = 10  # /* Re-initialize flow flag   */
 
 FlowUnits = {EN_CFS: "cf/s",
              EN_GPM: "gpm",
@@ -1708,7 +1775,7 @@ EN_METERS = 2
 
 
 class ENtoolkitError(Exception):
-    def __init__(self, epanet2, ierr):
+    def __init__(self, epanet2: object, ierr: object) -> object:
         self.warning = ierr < 100
         self.args = (ierr,)
         self.message = epanet2.ENgeterror(ierr)
