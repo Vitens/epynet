@@ -1,7 +1,6 @@
 import collections
 import pandas as pd
 
-
 class ObjectCollection(dict):
 
     # magic methods to transform collection attributes to Pandas Series or, if we return classes, another list

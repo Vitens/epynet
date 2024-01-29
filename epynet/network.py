@@ -1,11 +1,18 @@
 """ EPYNET Classes """
-
+import numpy as np
 from . import epanet2
 from .curve import Curve
 from .link import Pipe, Valve, Pump
 from .node import Junction, Tank, Reservoir
 from .objectcollection import ObjectCollection
 from .pattern import Pattern
+
+
+def isList(var):
+    if isinstance(var, (list, np.ndarray, np.matrix)):
+        return True
+    else:
+        return False
 
 
 class Network(object):
@@ -48,6 +55,10 @@ class Network(object):
         self.solved_for_simtime = None
 
         self.load_network()
+        # Link Status
+        self.TYPESTATUS = ['CLOSED', 'OPEN']
+        # Constants for control: 'LOWLEVEL', 'HILEVEL', 'TIMER', 'TIMEOFDAY'
+        self.TYPECONTROL = ['LOWLEVEL', 'HIGHLEVEL', 'TIMER', 'TIMEOFDAY']
 
     def load_network(self):
         """
@@ -457,3 +468,81 @@ class Network(object):
             print("-> Minimum pressure: {:.2f}".format(pmin))
             print("-> Required pressure: {:.2f}".format(preq))
             print("-> Exponential pressure: {:.2f}".format(pexp))
+
+    def __controlSet(self, value):
+        splitRule = value.split()
+        try:
+            setting = self.TYPESTATUS.index(splitRule[2])
+        except:
+            if splitRule[2] == 'CLOSED':
+                setting = 0
+            else:
+                setting = float(splitRule[2])
+        lindex= self.ep.ENgetlinkindex(splitRule[1])
+        ctype = 0
+        nindex = 0
+        level = 0
+
+        if not lindex:
+            raise Exception('Wrong link ID.')
+
+        if splitRule[3] == 'IF':
+            nindex = self.ep.ENgetnodeindex(splitRule[5])
+            ctype = 0
+            if splitRule[6] == 'ABOVE':
+                ctype = 1
+            level = float(splitRule[7])
+
+        if splitRule[3] == 'AT':
+            if splitRule[4] == 'CLOCKTIME':
+                # LINK linkID status AT CLOCKTIME clocktime AM/PM
+                nindex = 0
+                ctype = 3
+            else:
+                # LINK linkID status AT TIME time
+                nindex = 0
+                ctype = 2
+            if ':' not in splitRule[5]:
+                level = int(splitRule[5])
+            else:
+                time_ = splitRule[5].split(':')
+                level = int(time_[0]) * 3600 + int(time_[1]) * 60
+        return [ctype,lindex,setting,nindex,level]
+
+    def __addControlFunct(self, value):
+        if isList(value):
+            controlRuleIndex = []
+            for c in value:
+                [ctype,lindex,setting,nindex,level] = self.__controlSet(c)
+                controlRuleIndex.append(self.ep.ENaddcontrol(ctype,lindex,setting,nindex,level))
+        else:
+            [ctype,lindex,setting,nindex,level] = self.__controlSet(value)
+            controlRuleIndex = self.ep.ENaddcontrol(ctype,lindex,setting,nindex,level)
+        return controlRuleIndex
+
+    def add_control(self, ctype, *argv):
+        """ Add a simple control.
+
+        :param control: New Control
+        :type ctype: float or list
+        :return: Control index
+        :rtype: int
+
+        Example:
+        index = net.add_control('LINK P1 CLOSED IF NODE N1 ABOVE 40')
+
+        """
+        if type(ctype) is dict:
+            index = []
+            for key in ctype:
+                index.append(self.__addControlFunct(ctype[key]))
+        else:
+            if len(argv) == 0:
+                index = self.__addControlFunct(ctype)
+            else:
+                lindex = argv[0]
+                setting = argv[1]
+                nindex = argv[2]
+                level = argv[3]
+                index = self.ep.ENaddcontrol(ctype,lindex,setting,nindex,level)
+        return index
