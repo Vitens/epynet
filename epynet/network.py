@@ -14,13 +14,13 @@ def isList(var):
     else:
         return False
 
-
 class Network(object):
     """ self.epANET Network Simulation Class """
 
     def __init__(self, inputfile=None, units=epanet2.EN_CMH, headloss=epanet2.EN_DW, charset='UTF8'):
 
         # create multithreaded EPANET instance
+        self.ToolkitConstants = ['EN_NODECOUNT', 'EN_TANKCOUNT']
         self.ep = epanet2.EPANET2(charset=charset)
 
         if inputfile:
@@ -59,6 +59,7 @@ class Network(object):
         self.TYPESTATUS = ['CLOSED', 'OPEN']
         # Constants for control: 'LOWLEVEL', 'HILEVEL', 'TIMER', 'TIMEOFDAY'
         self.TYPECONTROL = ['LOWLEVEL', 'HIGHLEVEL', 'TIMER', 'TIMEOFDAY']
+
 
     def load_network(self):
         """
@@ -455,6 +456,170 @@ class Network(object):
     def close(self):
         print('closing')
         self.ep.ENdeleteproject()
+    def arange(self, begin, end, step=1):
+        """ Create float number sequence
+
+        """
+        return np.arange(begin, end, step)
+
+    def get_NumNodes(self):
+        """" Get number of junctions
+
+        """
+
+        return self.ep.ENgetcount(0)
+
+    def get_NodeIndex(self, *argv):
+        values = []
+        if len(argv) > 0:
+            index = argv[0]
+            if isinstance(index, list):
+                for i in index:
+                    values.append(self.ep.ENgetnodeindex(i))
+            else:
+                values = self.ep.ENgetnodeindex(index)
+        else:
+            for i in range(self.get_NumNodes()):
+                values.append(i + 1)
+        return values
+
+    def get_NodeReservoirIndex(self, *argv):
+        """ Retrieves the indices of reservoirs.
+
+        Example 1:
+
+        net.get_NodeReservoirIndex()           # Retrieves the indices of all reservoirs.
+
+        Example 2:
+
+        net.get_NodeReservoirIndex([1,2,3])    # Retrieves the indices of the first 3 reservoirs, if they exist.
+
+        See also getNodeNameID, getNodeIndex, getNodeJunctionIndex,
+        getNodeType, getNodeTypeIndex, getNodesInfo.
+        """
+        tmpNodeTypes = self.get_NodeIndex()
+        value = [i for i, x in enumerate(tmpNodeTypes) if x == 1]
+        if (len(value) > 0) and (len(argv) > 0):
+            index = argv[0]
+            try:
+                if isinstance(index, list):
+                    rIndices = []
+                    for i in index:
+                        rIndices.append(value[i - 1] + 1)
+                    return rIndices
+                else:
+                    return value[index - 1] + 1
+            except:
+                raise Exception('Some RESERVOIR indices do not exist.')
+        else:
+            rIndices = value
+            return [i + 1 for i in rIndices]
+
+    def get_NodeDemandIndex(self, *argv):
+
+        value = []
+        if len(argv) == 2:
+            nodeIndex = argv[0]
+            demandName = argv[1]
+            if not isList(nodeIndex) and not isList(demandName):
+                value = self.ep.ENgetdemandindex(nodeIndex, demandName)
+            elif isList(nodeIndex) and isList(demandName):
+                value = []
+                for i in range(len(nodeIndex)):
+                    value.append(self.ep.ENgetdemandindex(nodeIndex[i], demandName[i]))
+        elif len(argv) == 1:
+            nodeIndex = argv[0]
+            demandName = self.get_NodeDemandName()
+            if not isList(nodeIndex):
+                value = []
+                for i in range(len(demandName)):
+                    demandNameIn = demandName[i + 1]
+                    value.append(self.api.ENgetdemandindex(nodeIndex, demandNameIn[nodeIndex - 1]))
+            else:
+                value = [[0 for i in range(len(nodeIndex))] for j in range(len(demandName))]
+                for i in range(len(demandName)):
+                    demandNameIn = demandName[i + 1]
+                    for j in range(len(nodeIndex)):
+                        value[i][j] = self.api.ENgetdemandindex(nodeIndex[j], demandNameIn[nodeIndex[j] - 1])
+        elif len(argv) == 0:
+            demandName = self.getNodeJunctionDemandName()
+            indices = self.__getNodeJunctionIndices(*argv)
+            value = [[0 for _ in range(len(indices))] for _ in range(len(demandName))]
+            for i in range(len(demandName)):
+                for j in range(len(demandName[i + 1])):
+                    demandNameIn = demandName[i + 1][j]
+                    value[i][j] = self.api.ENgetdemandindex(j + 1, demandNameIn)
+        else:
+            self.api.errcode = 250
+            self.api.ENgeterror()
+        return value
+
+    def get_NumeberNodeDemandCategories(self, *argv):
+        """ Retrieves the value of all node base demands categorie number.
+        """
+        value = []
+        if len(argv) > 0:
+            index = argv[0]
+            if isinstance(index, list):
+                for i in index:
+                    value.append(self.ep.ENgetnumdemands(i))
+            else:
+                value = self.ep.ENgetnumdemands(index)
+        else:
+            for i in range(self.get_NumNodes(0)):
+                value.append(self.ep.ENgetnumdemands(i + 1))
+        return value
+
+    def get_nodeBaseDemand(self, *argv):
+        indices = self.__getNodeIndices(*argv)
+        numdemands = self.get_NumeberNodeDemandCategories(indices)
+        value = {}
+        val = np.zeros((max(numdemands), len(indices)))
+        j = 1
+        for i in indices:
+            v = 0
+            for u in range(numdemands[j - 1]):
+                val[v][j - 1] = self.ep.ENgetbasedemand(i, u + 1)
+                v += 1
+            j += 1
+        for i in range(max(numdemands)):
+            value[i + 1] = np.array(val[i])
+        return value
+
+    def add_NodeDemand(self, *argv):
+        nodeIndex = argv[0]
+        baseDemand = argv[1]
+        demandPattern = ''
+        demandName = ''
+        if len(argv) == 2:
+            demandPattern = ''
+            demandName = ''
+        elif len(argv) == 3:
+            demandPattern = argv[2]
+            demandName = ''
+        elif len(argv) == 4:
+            demandPattern = argv[2]
+            demandName = argv[3]
+        if not isList(nodeIndex):
+            self.ep.ENadddemand(nodeIndex, baseDemand, demandPattern, demandName)
+        elif isList(nodeIndex) and not isList(baseDemand) and not isList(demandPattern) and not isList(demandName):
+            for i in nodeIndex:
+                self.ep.ENadddemand(i, baseDemand, demandPattern, demandName)
+        elif isList(nodeIndex) and isList(baseDemand) and not isList(demandPattern) and not isList(demandName):
+            for i in range(len(nodeIndex)):
+                self.ep.ENadddemand(nodeIndex[i], baseDemand[i], demandPattern, demandName)
+        elif isList(nodeIndex) and isList(baseDemand) and isList(demandPattern) and not isList(demandName):
+            for i in range(len(nodeIndex)):
+                self.ep.ENadddemand(nodeIndex[i], baseDemand[i], demandPattern[i], demandName)
+        elif isList(nodeIndex) and isList(baseDemand) and isList(demandPattern) and isList(demandName):
+            for i in range(len(nodeIndex)):
+                self.ep.ENadddemand(nodeIndex[i], baseDemand[i], demandPattern[i], demandName[i])
+
+        if isList(nodeIndex) and not isList(demandName):
+            demandName = [demandName for _ in nodeIndex]
+
+        return self.get_NodeJunctionDemandIndex(nodeIndex, demandName)
+
 
     def demand_model_summary(self):
         """
@@ -519,6 +684,61 @@ class Network(object):
             [ctype,lindex,setting,nindex,level] = self.__controlSet(value)
             controlRuleIndex = self.ep.ENaddcontrol(ctype,lindex,setting,nindex,level)
         return controlRuleIndex
+    def __getNodeIndices(self, *argv):
+        if len(argv) > 0:
+            if isinstance(argv[0], list):
+                if isinstance(argv[0][0], str):
+                    return self.get_NodeIndex(argv[0])
+                else:
+                    return argv[0]
+            else:
+                if isinstance(argv[0], str):
+                    return [self.get_NodeIndex(argv[0])]
+                else:
+                    return [argv[0]]
+        else:
+            return self.get_NodeIndex()
+
+    def __getNodeJunctionIndices(self, *argv):
+        if len(argv) == 0:
+            numJuncs = self.get_NumNodes()
+            return list(range(1, numJuncs + 1))
+        else:
+            return argv[0]
+
+    def __setNodeDemandPattern(self, fun, propertyCode, value, *argv):
+
+        categ = 1
+        indices = self.__getNodeJunctionIndices()
+        param = value
+        if len(argv) == 2:
+            indices = value
+            categ = argv[0]
+            param = argv[1]
+        elif len(argv) == 1:
+            indices = value
+            param = argv[0]
+
+        for c in range(categ):
+            if len(argv) == 0 and type(value) is dict:
+                param = value[c]
+            j = 0
+            resInd = self.get_NodeReservoirIndex()
+            if not isList(indices):
+                indices = [indices]
+            if not isList(param):
+                param = [param]
+            for i in indices:
+                if i in resInd:
+                    if c + 1 > self.get_NumeberNodeDemandCategories(i):
+                        self.add_NodeJunctionDemand(i, param[j])
+                    else:
+                        eval('self.api.' + fun + '(i, c, param[j])')
+                elif categ == 1:
+                    self.ep.ENsetnodevalue(i, propertyCode, param[j])
+                else:
+                    eval('self.api.' + fun + '(i, categ, param[j])')
+                j += 1
 
     def add_control(self, ctype, *argv):
         """ Add a simple control.

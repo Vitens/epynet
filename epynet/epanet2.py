@@ -11,6 +11,19 @@ import datetime
 import os
 import warnings
 
+class Constants:
+    def __init__(self):
+        pass
+
+# Component counts
+    EN_NODECOUNT = 0
+    EN_TANKCOUNT = 1
+    EN_LINKCOUNT = 2
+    EN_PATCOUNT = 3
+    EN_CURVECOUNT = 4
+    EN_CONTROLCOUNT = 5
+    EN_RULECOUNT = 6
+
 
 class EPANET2(object):
 
@@ -140,11 +153,20 @@ class EPANET2(object):
             raise ENtoolkitError(self, ierr)
 
     def ENinitH(self, flag=None):
-        """Initializes storage tank levels, link status and settings,
-            and the simulation clock time prior
+        """This function initializes storage tank levels, link status and settings, and the simulation time clock prior
             to running a hydraulic analysis.
 
-            flag  EN_NOSAVE [+EN_SAVE] [+EN_INITFLOW] """
+            The initialization flag is a two digit number where the 1st (left) digit indicates if link flows should be
+            re-initialized (1) or not (0), and the 2nd digit indicates if hydraulic results should be saved to a
+            temporary binary hydraulics file (1) or not (0).
+
+            Be sure to call EN_initH prior to running a hydraulic analysis using a EN_runH - EN_nextH loop..
+
+            EN_NOSAVE = 0
+            EN_SAVE = 1
+            EN_INITFLOW = 10
+            EN_SAVE_AND_INIT = 11
+         """
         ierr = self._lib.EN_initH(self.ph, flag)
         if ierr != 0:
             raise ENtoolkitError(self, ierr)
@@ -715,17 +737,30 @@ class EPANET2(object):
         if ierr != 0:
             raise ENtoolkitError(self, ierr)
 
-    def ENgetbasedemand(self, index, demandindex):
-        """ Gets the base demand for one of a node's demand categories.
-                Arguments:
-                index: a node's index (starting from 1).
-                demandindex : the index of a demand category for the node (starting from 1).
-                """
-        label = ctypes.create_string_buffer(self._max_label_len)
-        ierr = self._lib.EN_getbasedemand(self.ph, ctypes.c_int(index), ctypes.c_int(demandindex))
+    def ENgetdemandindex(self, index, demandname):
+
+        ierr = self._lib.EN_getdemandindex(self.ph, int(index), demandname.encode('utf-8'), ctypes.byref(ctypes.c_int()))
+
         if ierr != 0:
             raise ENtoolkitError(self, ierr)
-        return label.value.decode(self.charset)
+
+    def ENgetbasedemand(self, index, demandindex):
+        """ Gets the base demand for one of a node's demand categories.
+
+        ENgetbasedemand(index, demandindex)
+
+        Arguments:
+        index:          a node's index (starting from 1).
+        demandindex :   the index of a demand category for the node (starting from 1).
+
+        Returns:
+        value  the category's base demand.
+
+        """
+        bDem = ctypes.c_double()
+        ierr  = self._lib.EN_getbasedemand(self.ph, int(index), demandindex, ctypes.byref(bDem))
+        if ierr != 0:
+            raise ENtoolkitError(self, ierr)
 
     def ENgetdemandname(self, index, demandindex):
         """Retrieves the name of a node's demand category.
@@ -1768,6 +1803,11 @@ EN_EFFIC_CURVE = 2
 EN_HLOSS_CURVE = 3
 EN_GENERIC_CURVE = 4
 EN_VALVE_CURVE = 5
+
+EN_PUMP_XHEAD    = 0      # /* Pump State Type */
+EN_PUMP_CLOSED   = 1
+EN_PUMP_OPEN     = 2
+EN_PUMP_XFLOW    = 3
 
 EN_PSI = 0  # / *Pressure units. */
 EN_KPA = 1
