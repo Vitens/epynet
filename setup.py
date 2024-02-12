@@ -1,10 +1,10 @@
 from setuptools import setup
 
 setup(name='epynet',
-      version='1.1',
-      description='Vitens EPANET 2.0 wrapper and utilities',
+      version='1.2',
+      description='Vitens EPANET 2.2 wrapper and utilities',
       url='https://github.com/vitenstc/epynet',
-      author='Abel Heinsbroek',
+      author='Abel Heinsbroek','Ton Blom',
       author_email='abel.heinsbroek@vitens.nl',
       license='Apache Licence 2.0',
       packages=['epynet'],
