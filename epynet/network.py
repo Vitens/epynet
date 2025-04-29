@@ -20,11 +20,11 @@ class Network(object):
             self.inputfile = inputfile
             self.rptfile = self.inputfile[:-3]+"rpt"
             self.binfile = self.inputfile[:-3]+"bin"
-            self.ep.ENopen(self.inputfile, self.rptfile, self.binfile)
+            self.ep.ENopen(self.inputfile, "/dev/null", self.binfile)
         else:
             self.inputfile = False
 
-            self.rptfile = ""
+            self.rptfile = "/dev/null"
             self.binfile = ""
 
             self.ep.ENinit(self.rptfile.encode(), self.binfile.encode(), units, headloss)
@@ -299,13 +299,17 @@ class Network(object):
             valve_type_code = epanet2.EN_PRV
         elif valve_type.lower() == "psv":
             valve_type_code = epanet2.EN_PSV
+        elif valve_type.lower() == "pcv":
+            valve_type_code = epanet2.EN_PCV
         else:
             raise ValueError("Unknown Valve Type")
 
         self.ep.ENaddlink(uid, valve_type_code, from_node, to_node)
         link = Valve(uid, self)
         link.diameter = diameter
-        link.setting = setting
+        if valve_type_code != epanet2.EN_GPV:
+            link.setting = setting
+
         link.from_node = self.nodes[from_node]
         link.to_node = self.nodes[to_node]
         link.to_node.links[link.uid] = link

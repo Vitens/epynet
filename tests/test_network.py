@@ -1,157 +1,157 @@
+import pytest
 from epynet import Network
-from nose.tools import assert_equal, assert_almost_equal
 import pandas as pd
 
-class TestNetwork(object):
+class TestNetwork:
     @classmethod
-    def setup_class(self):
-        self.network = Network(inputfile="tests/testnetwork.inp")
-        self.network.solve()
+    def setup_class(cls):
+        cls.network = Network(inputfile="tests/testnetwork.inp")
+        cls.network.solve()
 
     @classmethod
-    def teadown(self):
-        self.network.ep.ENclose()
+    def teardown_method(cls):
+        cls.network.ep.ENcloseH()
 
     def test01_network(self):
-        # test0 node count
-        assert_equal(len(self.network.nodes),11)
-        # test0 link count
-        assert_equal(len(self.network.links),12)
-        # test0 reservoir count
-        assert_equal(len(self.network.reservoirs),1)
-        # test0 valve count
-        assert_equal(len(self.network.valves),1)
-        # test0 pump count
-        assert_equal(len(self.network.pumps),1)
-        # test0 tank count
-        assert_equal(len(self.network.tanks),1)
+        # test node count
+        assert len(self.network.nodes) == 11
+        # test link count
+        assert len(self.network.links) == 12
+        # test reservoir count
+        assert len(self.network.reservoirs) == 1
+        # test valve count
+        assert len(self.network.valves) == 1
+        # test pump count
+        assert len(self.network.pumps) == 1
+        # test tank count
+        assert len(self.network.tanks) == 1
 
     def test02_link(self):
-        # test0 the properties of a single link
+        # test the properties of a single link
         link = self.network.links["11"]
         # pipe index and uid
-        assert_equal(link.index,9)
-        assert_equal(link.uid,"11")
+        assert link.index == 9
+        assert link.uid == "11"
         # from/to node
-        assert_equal(link.from_node.uid,"4")
-        assert_equal(link.to_node.uid,"9")
+        assert link.from_node.uid == "4"
+        assert link.to_node.uid == "9"
 
     def test03_pipe(self):
-        # test0 the properties of a single pipe
+        # test the properties of a single pipe
         pipe = self.network.links["11"]
         # check type
-        assert_equal(pipe.link_type,"pipe")
+        assert pipe.link_type == "pipe"
 
-        assert_almost_equal(pipe.length,100,2)
-        assert_almost_equal(pipe.diameter,150,2)
-        assert_almost_equal(pipe.roughness,0.1,2)
-        assert_almost_equal(pipe.minorloss,0.1,2)
+        assert pytest.approx(pipe.length, 2) == 100
+        assert pytest.approx(pipe.diameter, 2) == 150
+        assert pytest.approx(pipe.roughness, 2) == 0.1
+        assert pytest.approx(pipe.minorloss, 2) == 0.1
         # flow
-        assert_almost_equal(pipe.flow,87.92,2)
+        assert pytest.approx(pipe.flow, 2) == 87.92
         # direction
-        assert_almost_equal(pipe.velocity,1.38,2)
+        assert pytest.approx(pipe.velocity, 2) == 1.38
         # status
-        assert_equal(pipe.status,1)
+        assert pipe.status == 1
         # headloss
-        assert_almost_equal(pipe.headloss,1.29,2)
+        assert pytest.approx(pipe.headloss, 2) == 1.29
         # upstream/downstream node
-        assert_equal(pipe.upstream_node.uid,"4")
-        assert_equal(pipe.downstream_node.uid,"9")
+        assert pipe.upstream_node.uid == "4"
+        assert pipe.downstream_node.uid == "9"
 
     def test04_pump(self):
         pump = self.network.pumps["2"]
         # check type
-        assert_equal(pump.link_type,"pump")
+        assert pump.link_type == "pump"
 
-        assert_equal(pump.speed,1.0)
-        assert_almost_equal(pump.flow,109.67,2)
+        assert pump.speed == 1.0
+        assert pytest.approx(pump.flow, 2) == 109.67
         # change speed
         pump.speed = 1.5
-        assert_equal(pump.speed,1.5)
+        assert pump.speed == 1.5
         # resolve network
         self.network.solve()
-        assert_almost_equal(pump.flow,164.5,2)
+        assert pytest.approx(pump.flow, 2) == 164.5
         # revert speed
         pump.speed = 1.0
         self.network.solve()
-        
+
     def test05_valve(self):
         valve = self.network.valves["9"]
         # check type
-        assert_equal(valve.link_type,"valve")
+        assert valve.link_type == "valve"
         # check valve type
-        assert_equal(valve.valve_type,"PRV")
+        assert valve.valve_type == "PRV"
         # valve settings
-        assert_equal(valve.setting,5)
-        assert_almost_equal(valve.downstream_node.pressure,5,2)
+        assert valve.setting == 5
+        assert pytest.approx(valve.downstream_node.pressure, 2) == 5
         # change setting
         valve.setting = 10
-        assert_equal(valve.setting,10)
+        assert valve.setting == 10
         self.network.solve()
-        assert_almost_equal(valve.downstream_node.pressure,10,2)
+        assert pytest.approx(valve.downstream_node.pressure, 2) == 10
 
     def test06_node(self):
         node = self.network.nodes["4"]
         # uid
-        assert_equal(node.uid,"4")
+        assert node.uid == "4"
         # coordinates
         coordinates = node.coordinates
-        assert_almost_equal(coordinates[0],2103.02,2)
-        assert_almost_equal(coordinates[1],5747.69,2)
+        assert pytest.approx(coordinates[0], 2) == 2103.02
+        assert pytest.approx(coordinates[1], 2) == 5747.69
         # links
-        assert_equal(len(node.links),3)
+        assert len(node.links) == 3
         # up and downstream links
-        assert_equal(len(node.downstream_links),2)
-        assert_equal(len(node.upstream_links),1)
+        assert len(node.downstream_links) == 2
+        assert len(node.upstream_links) == 1
         # inflow
-        assert_equal(round(node.inflow,2),109.67)
+        assert round(node.inflow, 2) == 109.67
         # outflow
-        assert_equal(round(node.outflow,2),round(node.inflow,2)-node.demand)
+        assert round(node.outflow, 2) == round(node.inflow, 2) - node.demand
         # elevation
-        assert_equal(node.elevation,5)
+        assert node.elevation == 5
         # head
-        assert_equal(round(node.head,2),25.13)
+        assert pytest.approx(round(node.head, 2), 2) == 25.13
 
     def test07_junction(self):
         junction = self.network.junctions["4"]
 
-        assert_equal(round(junction.basedemand,2),1)
-        assert_equal(round(junction.demand,2),1)
+        assert pytest.approx(round(junction.basedemand, 2), 2) == 1
+        assert pytest.approx(round(junction.demand, 2), 2) == 1
 
     def test08_tank(self):
         tank = self.network.tanks["11"]
-        assert_equal(round(tank.diameter,2),50)
-        assert_equal(round(tank.initvolume,2),19634.95)
-        assert_equal(tank.minvolume,0)
-        assert_equal(tank.minlevel,0)
-        assert_equal(tank.maxlevel,20)
-        assert_equal(round(tank.volume,2),19634.95)
-        assert_equal(round(tank.maxvolume),2*round(tank.volume))
+        assert pytest.approx(round(tank.diameter, 2), 2) == 50
+        assert pytest.approx(round(tank.initvolume, 2), 2) == 19634.95
+        assert tank.minvolume == 0
+        assert tank.minlevel == 0
+        assert tank.maxlevel == 20
+        assert pytest.approx(round(tank.volume, 2), 2) == 19634.95
+        assert pytest.approx(round(tank.maxvolume), 2) == 2 * round(tank.volume)
 
     def test09_time(self):
         junction = self.network.junctions["4"]
         self.network.solve(3600)
-        assert_equal(round(junction.demand,2),2)
+        assert pytest.approx(round(junction.demand, 2), 2) == 2
         self.network.solve(7200)
-        assert_equal(round(junction.demand,2),3)
+        assert pytest.approx(round(junction.demand, 2), 2) == 3
 
     def test10_collections(self):
         # collection attributes as pandas Series
-        assert_almost_equal(self.network.pipes.flow.mean(),46.78,2)
-        assert_almost_equal(self.network.pipes.diameter.max(),150,2)
-        assert_almost_equal(self.network.pipes.velocity.min(),0.105,2)
+        assert pytest.approx(self.network.pipes.flow.mean(), 2) == 46.78
+        assert pytest.approx(self.network.pipes.diameter.max(), 2) == 150
+        assert pytest.approx(self.network.pipes.velocity.min(), 2) == 0.105
 
-        assert_equal(self.network.valves.setting.mean(),10)
+        assert self.network.valves.setting.mean() == 10
 
-        assert_almost_equal(self.network.junctions.demand.mean(),2.33,2)
+        assert pytest.approx(self.network.junctions.demand.mean(), 2) == 2.33
 
         # filtering and slicing collections
-        assert_equal(len(self.network.pipes[self.network.pipes.velocity > 3]),3)
-        assert_equal(len(self.network.nodes[self.network.nodes.pressure < 20]),5)
+        assert len(self.network.pipes[self.network.pipes.velocity > 3]) == 3
+        assert len(self.network.nodes[self.network.nodes.pressure < 20]) == 5
 
-        #increase the size of all pipes
+        # increase the size of all pipes
         self.network.pipes.diameter += 500
-        assert_almost_equal(self.network.pipes.diameter.mean(),605,2)
+        assert pytest.approx(self.network.pipes.diameter.mean(), 2) == 605
 
         self.network.pipes.diameter -= 500
         self.network.solve()
@@ -160,37 +160,35 @@ class TestNetwork(object):
         self.network.pipes[self.network.pipes.velocity > 3].diameter += 100
         self.network.solve()
 
-        assert_equal(len(self.network.pipes[self.network.pipes.velocity > 3]),0)
+        assert len(self.network.pipes[self.network.pipes.velocity > 3]) == 0
 
     def test11_timeseries(self):
         # run network
         self.network.run()
         # check return types
         # should return Series
-        assert(isinstance(self.network.pipes["1"].velocity, pd.Series))
-        # should return Dataframe
-        assert(isinstance(self.network.pipes.velocity, pd.DataFrame))
+        assert isinstance(self.network.pipes["1"].velocity, pd.Series)
+        # should return DataFrame
+        assert isinstance(self.network.pipes.velocity, pd.DataFrame)
 
         # timeseries operations
         # pipe 1 max velocity
-        assert_almost_equal(self.network.pipes["1"].velocity.mean(),1.66,2)
+        assert pytest.approx(self.network.pipes["1"].velocity.mean(), 2) == 1.66
         # all day mean velocity
-        assert_almost_equal(self.network.pipes.velocity.mean().mean(),1.14,2)
+        assert pytest.approx(self.network.pipes.velocity.mean().mean(), 2) == 1.14
 
         # test revert to steady state calculation
         self.network.solve()
-        assert(isinstance(self.network.pipes["1"].velocity, float))
-        assert(isinstance(self.network.pipes.velocity, pd.Series))
+        assert isinstance(self.network.pipes["1"].velocity, float)
+        assert isinstance(self.network.pipes.velocity, pd.Series)
 
     def test12_comments(self):
         # test reading comments
-        assert_equal(self.network.links['1'].comment, "testcommentpipe")
-        assert_equal(self.network.reservoirs['in'].comment, "testcommentreservoir")
-        assert_equal(self.network.tanks['11'].comment, "testcommenttank")
-        assert_equal(self.network.junctions['2'].comment, "testcommentjunction")
+        assert self.network.links["1"].comment == "testcommentpipe"
+        assert self.network.reservoirs["in"].comment == "testcommentreservoir"
+        assert self.network.tanks["11"].comment == "testcommenttank"
+        assert self.network.junctions["2"].comment == "testcommentjunction"
 
         # test writing comments
-        self.network.links['1'].comment = 'testwrite'
-        assert_equal(self.network.links['1'].comment, 'testwrite')
-
-
+        self.network.links["1"].comment = "testwrite"
+        assert self.network.links["1"].comment == "testwrite"

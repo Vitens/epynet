@@ -55,9 +55,12 @@ class Link(BaseObject):
         else:
             return self.from_node
 
-    @lazy_property
+    @property
     def vertices(self):
-        return self.network().get_vertices(self.uid)
+        return self.network().ep.ENgetvertices(self.index)
+    @vertices.setter
+    def vertices(self, value):
+        return self.network().ep.ENsetvertices(self.index, value)
 
     @lazy_property
     def path(self):
@@ -118,12 +121,14 @@ class Valve(Link):
     """ EPANET Valve Class """
 
     static_properties = {'setting': epanet2.EN_INITSETTING, 'initstatus': epanet2.EN_INITSTATUS,
-                         'diameter': epanet2.EN_DIAMETER}
-    properties = {'velocity': epanet2.EN_VELOCITY, 'flow': epanet2.EN_FLOW}
+                         'diameter': epanet2.EN_DIAMETER, 'minorloss': epanet2.EN_MINORLOSS, 'gpvcurve': epanet2.EN_GPV_CURVE}
+                         
+    properties = {'velocity': epanet2.EN_VELOCITY, 'flow': epanet2.EN_FLOW, 'status': epanet2.EN_STATUS}
 
     link_type = 'valve'
 
-    types = {3: "PRV", 4: "PSV", 5: "PBV", 6: "FCV", 7: "TCV", 8: "GPV"}
+    types = {3: "PRV", 4: "PSV", 5: "PBV", 6: "FCV", 7: "TCV", 8: "GPV", 9: "PCV"}
+
 
     @lazy_property
     def valve_type(self):
@@ -133,3 +138,10 @@ class Valve(Link):
             print(e)
             raise e
         return self.types[type_code]
+
+    @valve_type.setter
+    def valve_type(self, value):
+        if value not in self.types.values():
+            raise ValueError("Invalid valve type")
+        type_code = list(self.types.keys())[list(self.types.values()).index(value)]
+        self.network().ep.ENsetlinktype(self.index, type_code)

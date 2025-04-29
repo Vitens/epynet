@@ -408,6 +408,44 @@ class EPANET2(object):
         ierr= self._lib.EN_getoption(self.ph, optioncode, ctypes.byref(j))
         if ierr!=0: raise ENtoolkitError(self, ierr)
         return j.value
+    
+    def ENgetvertices(self, index):
+        """ Retrieves the coordinates of all vertices of a link."""
+        j = ctypes.c_int()
+        ierr = self._lib.EN_getvertexcount(self.ph, index, ctypes.byref(j))
+
+        if ierr!=0: raise ENtoolkitError(self, ierr)
+
+        vertices = []
+
+        for v in range(j.value):
+            x = ctypes.c_float()
+            y = ctypes.c_float()
+
+            ierr = self._lib.EN_getvertex(self.ph, index, v+1, ctypes.byref(x), ctypes.byref(y))
+
+            if ierr!=0: raise ENtoolkitError(self, ierr)
+
+            vertices.append((x.value, y.value))
+        
+        return vertices
+
+    def ENsetvertices(self, index, vertices):
+        """ Sets the coordinates of all vertices of a link."""
+
+        num = len(vertices)
+
+        xValues= (ctypes.c_float*num)()
+        yValues= (ctypes.c_float*num)()
+
+        for i in range(num):
+            xValues[i] = float(vertices[i][0])
+            yValues[i] = float(vertices[i][1])
+        
+        ierr = self._lib.EN_setvertices(self.ph, index, xValues, yValues, ctypes.c_int(num))
+        if ierr!=0: raise ENtoolkitError(self, ierr)
+        
+
 
     def ENgetversion(self):
         """Retrieves the current version number of the Toolkit."""
@@ -486,6 +524,21 @@ class EPANET2(object):
         ierr= self._lib.EN_setnodevalue(self.ph, ctypes.c_int(index), ctypes.c_int(paramcode), ctypes.c_float(value))
         if ierr!=0: raise ENtoolkitError(self, ierr)
 
+    def ENsetlinktype(self, index, value):
+        """Sets the type of link.
+        Arguments:
+        index:  link index
+        value:  link type code EN_CVPIPE  Check Valve Pipe
+                                EN_PIPE    Pipe
+                                EN_PUMP    Pump
+                                EN_PRV     Pressure Reducing Valve
+                                EN_PSV     Pressure Sustaining Valve
+                                EN_PBV     Pressure Breaker Valve
+                                EN_FCV     Flow Control Valve
+                                EN_TCV     Throttle Control Valve
+                                EN_GPV     General Purpose Valve"""
+        ierr= self._lib.EN_setlinktype(self.ph, ctypes.c_int(index), ctypes.c_int(value), ctypes.c_int(0))
+        if ierr!=0: raise ENtoolkitError(self, ierr)
 
     def ENsetlinkvalue(self, index, paramcode, value):
         """Sets the value of a parameter for a specific link.
@@ -953,6 +1006,8 @@ EN_HEADLOSS      = 10
 EN_STATUS        = 11
 EN_SETTING       = 12
 EN_ENERGY        = 13
+EN_GPV_CURVE      = 24
+EN_PCV_CURVE      = 25
 
 EN_DURATION      = 0      # /* Time parameters */
 EN_HYDSTEP       = 1
@@ -985,6 +1040,7 @@ EN_PBV           = 5
 EN_FCV           = 6
 EN_TCV           = 7
 EN_GPV           = 8
+EN_PCV           = 9
 
 EN_NONE          = 0      # /* Quality analysis types */
 EN_CHEM          = 1

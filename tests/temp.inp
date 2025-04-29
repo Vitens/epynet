@@ -1,0 +1,156 @@
+; Filename: testnetwork.inp
+; WNTR: 1.2.0
+; Created: 2024-07-01 13:04:24
+[TITLE]
+
+[JUNCTIONS]
+;ID                      Elevation       Demand Pattern                 
+ 2                                  0               0 1                          ;
+ 3                                  0               0 1                          ;
+ 4                                  5               1 1                          ;
+ 5                                  0               1 1                          ;
+ 6                                  0               1 1                          ;
+ 7                                  0               1 1                          ;
+ 8                                  0               1 1                          ;
+ 9                                  0               1 1                          ;
+ 10                                 0               1 1                          ;
+
+[RESERVOIRS]
+;ID                                   Head                  Pattern
+ in                                10                            ;
+
+[TANKS]
+;ID                              Elevation           Init Level            Min Level            Max Level             Diameter           Min Volume Volume Curve         Overflow            
+ 11                                 0              10               0              20              50               0                                             ;
+
+[PIPES]
+;ID                   Node1                Node2                              Length             Diameter            Roughness           Minor Loss               Status
+ 1                    in                   2                                100             100             0.1               0                 Open   ;
+ 3                    3                    4                                100             100             0.1               0                 Open   ;
+ 4                    4                    5                                100             100             0.1               0                 Open   ;
+ 5                    5                    6                                100             100             0.1               0                 Open   ;
+ 6                    6                    7                                100             100             0.1               0                 Open   ;
+ 7                    7                    8                                100             100             0.1               0                 Open   ;
+ 8                    8                    9                                100             100             0.1               0                 Open   ;
+ 10                   5                    8                                100             100             0.1               0                 Open   ;
+ 11                   4                    9                                100             150             0.1             0.1                 Open   ;
+ 12                   9                    11                               100             100             0.1               0                 Open   ;
+
+[PUMPS]
+;ID                   Node1                Node2                Properties          
+ 2                    2                    3                    HEAD     1                      ;
+
+[VALVES]
+;ID                   Node1                Node2                            Diameter Type              Setting           Minor Loss
+ 9                    9                    10                               100 PRV                5               0   ;
+
+[TAGS]
+;type      name       tag       
+
+[DEMANDS]
+;ID        Demand     Pattern   
+
+[STATUS]
+;ID        Setting   
+
+[PATTERNS]
+;ID        Multipliers
+
+1 1.000000 2.000000 3.000000 4.000000 5.000000 4.000000
+1 3.000000 2.000000 1.000000 1.000000
+
+[CURVES]
+;ID         X-Value      Y-Value     
+;PUMP: 1
+ 1            100.000000    50.000000   ;
+
+
+[CONTROLS]
+
+[RULES]
+
+[ENERGY]
+GLOBAL EFFICIENCY      75.0000
+GLOBAL PRICE           0.0000
+DEMAND CHARGE          0.0000
+
+[EMITTERS]
+;ID        Flow coefficient
+
+[QUALITY]
+
+[SOURCES]
+;Node      Type       Quality    Pattern   
+
+[REACTIONS]
+;Type           Pipe/Tank               Coefficient
+
+ ORDER BULK 1
+ ORDER TANK 1
+ ORDER WALL 1
+ GLOBAL BULK 0.0000    
+ GLOBAL WALL 0.0000    
+ LIMITING POTENTIAL 0.0000    
+ ROUGHNESS CORRELATION 0.0000    
+
+[MIXING]
+;Tank ID             Model Fraction
+
+[TIMES]
+DURATION             10:00:00
+HYDRAULIC TIMESTEP   01:00:00
+QUALITY TIMESTEP     00:05:00
+PATTERN TIMESTEP     01:00:00
+PATTERN START        00:00:00
+REPORT TIMESTEP      01:00:00
+REPORT START         00:00:00
+START CLOCKTIME      00:00:00 AM
+RULE TIMESTEP        00:06:00
+STATISTIC            NONE      
+
+[REPORT]
+SUMMARY    NO
+PAGE       0
+
+[OPTIONS]
+UNITS                CMH                 
+HEADLOSS             D-W                 
+SPECIFIC GRAVITY     1
+VISCOSITY            1
+TRIALS               40
+ACCURACY             0.001
+CHECKFREQ            2
+MAXCHECK             10
+UNBALANCED           CONTINUE 10
+PATTERN              1                   
+DEMAND MULTIPLIER    1
+EMITTER EXPONENT     0.5
+QUALITY              NONE                
+DIFFUSIVITY          1
+TOLERANCE            0.01
+
+[COORDINATES]
+;Node      X-Coord    Y-Coord   
+2                 648.910000000       5747.690000000
+3                1155.460000000       5747.690000000
+4                2103.020000000       5747.690000000
+5                2104.940000000       4506.170000000
+6                2103.020000000       3709.560000000
+7                3884.900000000       3709.560000000
+8                3884.900000000       4508.120000000
+9                3884.900000000       5747.690000000
+10               5184.060000000       5753.650000000
+in                166.190000000       5747.690000000
+11               3884.900000000       6558.180000000
+
+[VERTICES]
+;Link      X-Coord    Y-Coord   
+
+[LABELS]
+
+[BACKDROP]
+DIMENSIONS    0.00    0.00    10000.00    10000.00
+UNITS    NONE
+OFFSET    0.00    0.00
+
+[END]
