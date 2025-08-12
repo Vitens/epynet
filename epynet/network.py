@@ -11,10 +11,13 @@ from .pattern import Pattern
 
 class Network(object):
     """ self.epANET Network Simulation Class """
-    def __init__(self, inputfile=None, units=epanet2.EN_CMH, headloss=epanet2.EN_DW, charset='UTF8'):
+    def __init__(self, inputfile=None, units=epanet2.EN_CMH, headloss=epanet2.EN_DW, charset='UTF8', test_mode=False):
 
         # create multithreaded EPANET instance
         self.ep = epanet2.EPANET2(charset=charset)
+
+        # test mode, allows for setting properties without solving (usefull for testing)
+        self.test_mode = test_mode
 
         if inputfile:
             self.inputfile = inputfile

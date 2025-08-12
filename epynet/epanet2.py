@@ -964,6 +964,10 @@ class EPANET2(object):
         ierr= self._lib.EN_getcurvevalue(self.ph, ctypes.c_int(curveIndex), ctypes.c_int(point-1), ctypes.byref(x), ctypes.byref(y))
         if ierr!=0: raise ENtoolkitError(self, ierr)
         return x.value, y.value
+    
+    def ENsetdemandmodel(self, model, pmin, preq, pmax):
+        ierr= self._lib.EN_setdemandmodel(self.ph, ctypes.c_int(model), ctypes.c_float(pmin), ctypes.c_float(preq), ctypes.c_float(pmax))
+        if ierr!=0: raise ENtoolkitError(self, ierr)
 
 
 EN_ELEVATION     = 0      # /* Node parameters */
