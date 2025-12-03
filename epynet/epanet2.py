@@ -703,7 +703,7 @@ class EPANET2(object):
                                   EN_EMITEXPON 
                                   EN_DEMANDMULT
           value:  option value"""
-        ierr= self._lib.EN_setoption(self.ph, ctypes.c_int(paramcode), ctypes.c_float(value))
+        ierr= self._lib.EN_setoption(self.ph, ctypes.c_int(optioncode), ctypes.c_float(value))
         if ierr!=0: raise ENtoolkitError(self, ierr)
 
 
@@ -969,6 +969,11 @@ class EPANET2(object):
         ierr= self._lib.EN_setdemandmodel(self.ph, ctypes.c_int(model), ctypes.c_float(pmin), ctypes.c_float(preq), ctypes.c_float(pmax))
         if ierr!=0: raise ENtoolkitError(self, ierr)
 
+    def ENgetstatistic(self, statisticcode):
+        j = ctypes.c_float()
+        ierr = self._lib.EN_getstatistic(self.ph, ctypes.c_int(statisticcode), ctypes.byref(j))
+        if ierr!=0: raise ENtoolkitError(self, ierr)
+        return j.value
 
 EN_ELEVATION     = 0      # /* Node parameters */
 EN_BASEDEMAND    = 1
@@ -1096,6 +1101,15 @@ EN_NOSAVE        = 0      # /* Save-results-to-file flag */
 EN_SAVE          = 1
 EN_INITFLOW      = 10     # /* Re-initialize flow flag   */
 
+EN_ITERATIONS      = 0
+EN_RELATIVEERROR   = 1
+EN_MAXHEADERROR    = 2
+EN_MAXFLOWCHANGE   = 3
+EN_MASSBALANCE     = 4
+EN_DEFICIENTNODES  = 5
+EN_DEMANDREDUCTION = 6
+EN_LEAKAGELOSS     = 7
+EN_ERRORNODE       = 8
 
 
 FlowUnits= { EN_CFS :"cfs"   ,

@@ -121,14 +121,36 @@ class Valve(Link):
     """ EPANET Valve Class """
 
     static_properties = {'setting': epanet2.EN_INITSETTING, 'initstatus': epanet2.EN_INITSTATUS,
-                         'diameter': epanet2.EN_DIAMETER, 'minorloss': epanet2.EN_MINORLOSS, 'gpvcurve': epanet2.EN_GPV_CURVE}
+                         'diameter': epanet2.EN_DIAMETER, 'minorloss': epanet2.EN_MINORLOSS, 'gpvcurve': epanet2.EN_GPV_CURVE, 'pcvcurve': epanet2.EN_PCV_CURVE}
                          
     properties = {'velocity': epanet2.EN_VELOCITY, 'flow': epanet2.EN_FLOW, 'status': epanet2.EN_STATUS}
 
     link_type = 'valve'
 
-    types = {3: "PRV", 4: "PSV", 5: "PBV", 6: "FCV", 7: "TCV", 8: "GPV", 9: "PCV"}
+    types = {3: "PRV", 4: "PSV", 5: "PBV", 6: "FCV", 7: "TCV", 8: "GPV", 9: "PCV", 10: "EV"}
 
+    @property
+    def curve(self):
+        raise ValueError('requesting valve curves not supported for now')
+
+    @curve.setter
+    def curve(self, value):
+        if self.valve_type not in ['GPV', 'PCV']:
+            raise ValueError('Only GPV and PCV valves can have a curve')
+        
+        if isinstance(value, int):
+            curve_index = value
+        elif isinstance(value, str):
+            curve_index = self.network().ep.ENgetcurveindex(value)
+        elif isinstance(value, Curve):
+            curve_index = value.index
+        else:
+            raise ValueError("Invalid input for curve")
+
+        if self.valve_type == 'GPV':
+            self.gpvcurve = curve_index
+        else:
+            self.pcvcurve = curve_index
 
     @lazy_property
     def valve_type(self):

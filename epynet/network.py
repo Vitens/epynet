@@ -11,7 +11,7 @@ from .pattern import Pattern
 
 class Network(object):
     """ self.epANET Network Simulation Class """
-    def __init__(self, inputfile=None, units=epanet2.EN_CMH, headloss=epanet2.EN_DW, charset='UTF8', test_mode=False):
+    def __init__(self, inputfile=None, units=epanet2.EN_CMH, headloss=epanet2.EN_DW, charset='UTF8', test_mode=False, debug=False):
 
         # create multithreaded EPANET instance
         self.ep = epanet2.EPANET2(charset=charset)
@@ -23,7 +23,11 @@ class Network(object):
             self.inputfile = inputfile
             self.rptfile = self.inputfile[:-3]+"rpt"
             self.binfile = self.inputfile[:-3]+"bin"
-            self.ep.ENopen(self.inputfile, "/dev/null", self.binfile)
+            if debug:
+                self.ep.ENopen(self.inputfile, self.rptfile, self.binfile)
+                self.ep.ENsetoption(26, 2)
+            else:
+                self.ep.ENopen(self.inputfile, self.rptfile, self.binfile)
         else:
             self.inputfile = False
 
@@ -217,7 +221,7 @@ class Network(object):
 
         return node
 
-    def add_pipe(self, uid, from_node, to_node, diameter=100, length=10, roughness=0.1, check_valve=False):
+    def add_pipe(self, uid, from_node, to_node, diameter=100, length=10, roughness=0.1, check_valve=False, minor_loss=0):
 
         from_node = from_node if isinstance(from_node, str) else from_node.uid
         to_node = to_node if isinstance(to_node, str) else to_node.uid
@@ -233,6 +237,8 @@ class Network(object):
         link.length = length
         link.roughness = roughness
 
+        link.minorloss = minor_loss
+        
         link.from_node = self.nodes[from_node]
         link.to_node = self.nodes[to_node]
         link.to_node.links[link.uid] = link
@@ -304,6 +310,8 @@ class Network(object):
             valve_type_code = epanet2.EN_PSV
         elif valve_type.lower() == "pcv":
             valve_type_code = epanet2.EN_PCV
+        elif valve_type.lower() == "ev":
+            valve_type_code = 10
         else:
             raise ValueError("Unknown Valve Type")
 
