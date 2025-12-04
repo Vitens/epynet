@@ -1,5 +1,5 @@
 """ EPYNET Classes """
-import atexit
+import os
 
 from . import epanet2
 from .objectcollection import ObjectCollection
@@ -30,8 +30,11 @@ class Network(object):
                 self.ep.ENopen(self.inputfile, self.rptfile, self.binfile)
         else:
             self.inputfile = False
+            if os.name == 'nt':
+                self.rptfile = r"C:\NUL"
+            else:
+                self.rptfile = "/dev/null"
 
-            self.rptfile = "/dev/null"
             self.binfile = ""
 
             self.ep.ENinit(self.rptfile.encode(), self.binfile.encode(), units, headloss)
